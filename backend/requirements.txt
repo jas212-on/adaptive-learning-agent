@@ -1,0 +1,18 @@
+# Core API
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+
+# LLM (Gemini)
+google-generativeai
+
+# HTTP client (used by OCR + HF router)
+requests
+
+# OCR / screen capture (Windows)
+pytesseract
+opencv-python
+numpy
+mss
+pywin32

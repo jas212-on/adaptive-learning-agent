@@ -1,81 +1,117 @@
 [
     {
-        "title": "frontend - Google Chrome",
-        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:03\n",
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n60:00:08\n",
         "server_response": {
-            "topic": "Screen reading",
+            "topic": "Screen reading detector status",
             "confidence": null,
             "raw": null
         }
     },
     {
-        "title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
-        "ocr_text": "n; is) {\n\n[i] == 1) {\n\nsited[i]) {\n\n(DFS(i, v, visited, graph, n))\n\nreturn 13\n\nGi [= parent) {\n\nurn 13\n\nMAX], visited[Max] = {0};\n\number of vertices\n\n\"Ys\n\n3\n\ndjacency matrix:\\n\");\n\nn; ist)\n\nj<n; jy)\n\nwd\", &graph[i][5])\n\nn; is) {\n\nd[i]) {\n\n(i, -1, visited, graph, n)) {]\n\nntf(“cycle exists in the graph\\n\")};\n\n7”\n",
+        "title": "KMeans - Google Search — Original profile — Mozilla Firefox",
+        "ocr_text": "KMeans\n\nU\n\nfe)\n\neee\n\nge\n\ne\n\nx\n\n4\n\nLS\n\nQ\n\neee\n\nAll\n\nImages\n\nVideos\n\nShopping\n\nNews\n\nShort videos\n\nMore ~\n\nTools +\n\n—\n\nrview\n\nrc\n\ns a popular unsupervised machine learning algorithm\n\nKMeans — scikit-learn 1.8.0\n\n‘ions data into ‘k' distinct, non-overlapping clusters by\n\nsimilar data points, minimizing the distance to their\n\ndocumentation\n\nenter (centroid) . It works iteratively: assign points to the\n\nKMeans clustering is a fast algorithm that can\n\nbe used to cluster data. It uses either Lloyd's\n\nntroid, then recalculate centroids as the mean of\n\noints, repeating until convergence, making it efficient for tasks like market\n\nfe Scikit-learn\n\ntion, image compression, and finding natural groupings in unlabeled\n\nShow more V\n\n‘learn\n\n‘scikit-learn.org > sklearn.cluster.KMeans.html\n\nk-means clustering\n\n— scikit-learn 1.8.0 documentation\n\nis alaorithm is very fast (one of the fastest clustering algorithms available). but it falls in\n\nPg A\n",
         "server_response": {
-            "topic": "Graph cycle detection",
+            "topic": "KMeans - Google Search — Original profile — Mozilla Firefox",
             "confidence": null,
-            "raw": null
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 52.649736741s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 52\n}\n]"
         }
     },
     {
-        "title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
-        "ocr_text": "dled\n\nie\n\npaienuy 1\n\nMAX], visited[Max] = {0};\n\number of vertices:\n\n\"Ys\n\n3\n\ndjacency matrix:\\n\") 5\n\nn; i+)\n\nji<n; jy)\n\nwd\", &graph(i][j])3\n\nn; ist) {\n\nd{i}) {\n\n(i, -1, visited, graph, n)) {]\n\nntf(“cycle exists in the graph\\n\");\n\nurn 3\n\ne in the graph\\n\");\n\n@ irontend - Google Chrome\n\n—\n\n-\n\n_\n\n_\n\nrd\n",
+        "title": "Bloom’s taxonomy - Google Search — Original profile — Mozilla Firefox",
+        "ocr_text": "eee\n\ne\n\nBloom’s taxonomy\n\nx\n\n4\n\nU\n\nSy\n\nfe)\n\nQ\n\neee\n\neee\n\nAll\n\nImages\n\nVideos\n\nShopping\n\nNews\n\nShort videos\n\nMore ~\n\nTools ~\n\n—\n\nrview\n\naxonomy is a hierarchical framework for classifying learning objectives,\n\nBloom's Taxonomy (Explained in 3\n\nBLOOM'S\n\n| by Benjamin Bloom, that guides educators in designing lessons,\n\nTAXONOMY _“\"\n\nMinutes)\n\ncetare\n\nLATE\n\nits, and curricula to foster deeper thinking, moving from basic recall to\n\ny2t\n\n17 Jun 2024 — bloom's taxonomy is a..\n\nreation. It has three domains (cognitive, affective, psychomotor) but is most\n\nmera\n\nits six levels of cognitive skills (Remember, Understand, Apply, Analyze,\n\ne YouTube - Helpful Professor Explains!\n\ncreate), often presented as a pyramid, with each level building on the last for\n\nler thinking. 2\n\nBloom's taxonomy - Wikipedia\n\nBloom's taxonomy is a framework for\n\nater ie tia\n\nised Cognitive Domain (Most Common)\n\npie teiece rite Dtereiertc Reich cctL ies)\n\ncategorizing educational goals, developed by ...\n\n@ Wikipedia\n\nbering: Recalling facts, terms, basic concepts (e.g., list, define, recall).\n\ntanding: Explaining ideas or concepts (e.g., summarize, explain,\n\nBloom's Taxonomy | Centre for Teaching\n\nase).\n\nExcellence\n\n=\n\nShow more Vv\n",
         "server_response": {
-            "topic": "Cycle detection in graphs",
+            "topic": "Bloom’s taxonomy - Google Search — Original profile — Mozilla Firefox",
             "confidence": null,
-            "raw": null
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 48.994780049s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 48\n}\n]"
         }
     },
     {
-        "title": "(244) Network Types: LAN, WAN, PAN, CAN, MAN, SAN, WLAN - YouTube - Google Chrome",
-        "ocr_text": "POWERCERT VIDEOS\n\nee\n\nAll\n\nFrom your search\n\nFrom the series\n\n¥\n\n>\n\nee\n\nNETWORK\n\nNetwork Topologies (Star, Bus,\n\n\\N CAMPUS AREA NETWORK\n\nTOPOLOGIES\n\nRing, Mesh, Ad hoe, ...\n\nee\n\nPowerCert Animated Videos @\n\na5\n\network that joins 2 or more LANs together\n\nba\n\noss\n\n1.2m views + 7 years ago\n\nEXPLAINED\n\nin a limited area.\n\nComputer Networks\n\n{Classification}\n\nClassification of Computer\n\n-\n\n.\n\nNetworks\n\nPom\n\nwh a\n\nPoets\n\nNeso Academy @\n\ncag\n\n717k views + 6 years ago\n\nSoftware\n\nHow to become a software\n\nEngineer ‘3\n\nengineer after 10th | 10th ke ...\n\nConglete Revenue\n\nAfter 10th?\n\nTechWithSky\n\n|\n\n|\n\n5 views + 1 hour ago\n\nC.\n\nNew\n\n|\n\nbe _|\n\nWIMATED\n\nHub, Switch, & Router Explained\n\nSWITCH\n\n- Whats the difference?\n\nPowerCert Animated Videos @\n\n¢\n\nPa.\n\nROUTE!\n\nBa\n\nLe _|\n\n7:22\n\n6.1m views « 8 years ago\n\nWHAT'S THE!\n\nLd\n\n=\n\n.\n\nGira Gira Gingiraagirey - Video\n\n4 =w_\n\nre\n\naainey\n\nSong | Champion | Roshan | ...\n\n=\n\nayy\n\nwt VIDEO SONG\n\nSony Music South @\n\n455\n\n‘CAN CAMPUS AREA NETW.\n\n>\n\n@\n\nAN\n\n1.5m views « 2 days ago\n\n515\n\nNew\n\nAL WIAA! MARI CARL BAAAL CARI Ul ABI\n\nLAN-WAN-SUBNET LAN WAN SURNET-\n",
+        "title": "Bloom’s taxonomy - Google Search — Original profile — Mozilla Firefox",
+        "ocr_text": "e\n\nBloom’s taxonomy\n\nx\n\nYv\n\nU\n\nSay\n\nfe)\n\nQ\n\nLe\n\nAll\n\nImages\n\nVideos\n\nShopping\n\nNews\n\nShort videos\n\nMore ~\n\nTools +\n\n—\n\nrview\n\naxonomy is a hierarchical framework for classifying learning objectives,\n\nBloom's Taxonomy (Explained in 3\n\nBLOOM'S\n\n| by Benjamin Bloom, that guides educators in designing lessons,\n\nTAXONOMY “'\n\nMinutes)\n\nevaLuAaTE\n\nCREATE\n\nits, and curricula to foster deeper thinking, moving from basic recall to\n\nAMaLYTE\n\n17 Jun 2024 — bloom’s taxonomy is a...\n\nreation. It has three domains (cognitive, affective, psychomotor) but is most\n\nBinera\n\nits six levels of cognitive skills (Remember, Understand, Apply, Analyze,\n\nEo) YouTube - Helpful Professor Explains!\n\n~reate), often presented as a pyramid, with each level building on the last for\n\nler thinking. 2\n\nBloom's taxonomy - Wikipedia\n\nBloom's taxonomy is a framework for\n\neaters tier\n\nised Cognitive Domain (Most Common)\n\npie teRece icles Stir ieric Scie hecctt ies)\n\ncategorizing educational goals, developed by\n\n© wikipedia\n\nbering: Recalling facts, terms, basic concepts (e.g., list, define, recall).\n\ntanding: Explaining ideas or concepts (e.g., summarize, explain,\n\nBloom's Taxonomy | Centre for Teaching\n\nase).\n\nExcellence\n\nShow more V\n",
         "server_response": {
-            "topic": "Network Types",
+            "topic": "Bloom’s taxonomy - Google Search — Original profile — Mozilla Firefox",
             "confidence": null,
-            "raw": null
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 45.278323924s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 45\n}\n]"
         }
     },
     {
-        "title": "(244) Gira Gira Gingiraagirey - Video Song | Champion | Roshan | Anaswara | Ram Miriyala | Mickey J Meyer - YouTube - Google Chrome",
-        "ocr_text": "4s\n\nwo\n\nay\n\nG\n\n= A\n\na hod\n\n~\n\nGrow online and offline\n\n‘Sign up\n\nwith Google Ads\n\n\"\n\n‘Sponaored - ads.google.com\n\nPy,\n\n=\n\nij\n\n“\n\n>\n\nwe\n\nFrom Sony Music South Mickey J Meyer\n\nVa\n\n<\n\n<e\n\nFai\n\nKaakum Vadivel\n\ntm 4)\n\nDharan Kumar - Topic\n\na\n\nrary\n\n4.5m views - 2 months ago\n\n,\n\na saz\n\nnl\n\n—I19\n\nwe\n\na\n\nEee\n\nMix — Premam Malare Video\n\ne\n\n‘Song | Rajesh Murug\n\nin | Vij...\n\na\n\nat\n\nview!\n\nMg\n\nVijay Yesudas, Thamarai, Keba Jeremiah\n\nMA\n\n> Mix f\n\n‘|\n\nNn SEA\n\ngr\n\nb, ¢\n\n~ Punya Nilaaven Ayyan | Madhu\n\nim\n\n< Balakrishnan | Nitheesh ...\n\n-o\n\nRY\n\nwes\n\nSaina Music @\n\nLt\n\n@\n\n1.2k views « 1 day ago\n\n2421\n\ner\n\n\"My Mix\n\ndenn Cann | Charmnitnn | Deeknn | Amnmmureen. | Dee\n\nIe|\n\na a Yn\n\nNandagovindam Bhajans. Vineeth Sree:\n",
-        "server_response": null
-    },
-    {
-        "title": "RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint",
-        "ocr_text": "It ensures that whatever text is captured (manual or automatic) matches the official pattern before\n\nintegrating with backend services like toll deduction, challan generation, or vehicle\n\ntracking.\n\ne\n\nToll plazas: Plate captured — Regex validation — Cross-check with Fastag\n\nDB.\n\nTraffic police app: Officer enters vehicle number — Regex validation\n\nensures no wrong input — Cross-check with insurance/PUC/road tax DB.\n\nParking systems: ANPR camera — OCR — Regex — Match against\n\nregistered users.\n\ne\n\nCREATE TABLE Vehicles (\n\nLicenseNo VARCHAR(15)\n\nCHECK il irancaNn ~ 'ATA_FISOUN_OVWOUA_714 DUN _alaAte'y\n",
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:30\n",
         "server_response": {
-            "topic": "Regex validation",
+            "topic": "frontend — Original profile — Mozilla Firefox",
             "confidence": null,
-            "raw": null
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 42.458776245s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 42\n}\n]"
         }
     },
     {
-        "title": "frontend - Google Chrome",
-        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:54\n",
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Dashboard\n\nnw\n\no\n\nRefresh\n\nDetected topics and learning progress.\n\nDetected topics\n\nBloom’s taxonomy.\n\nintermediate\n\nKMeans - Google ...\n\nintermediate\n\nScreen reading det...\n\nintermediate\n\nConfidence: —\n\nConfidence: —\n\nConfidence: —\n\nintermediate\n\nfrontend — Origin\n\nConfidence: —\n",
         "server_response": {
-            "topic": "Screen reading functionality",
+            "topic": "frontend — Original profile — Mozilla Firefox",
             "confidence": null,
-            "raw": null
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 39.466557739s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 39\n}\n]"
         }
     },
     {
-        "window_title": "frontend - Google Chrome",
-        "time_spent_sec": 7
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Dashboard\n\nw/\n\nlal\n\nRefresh\n\nDetected topics and learning progress.\n\nB\n\nDetected topics\n\nBloom’s taxonomy.\n\nintermediate\n\nKMeans - Google ...\n\nintermediate\n\nScreen reading det...\n\nintermediate\n\nConfidence: —\n\nConfidence: —\n\nConfidence: —\n\nintermediate\n\nfrontend — Origin\n\nConfidence: —\n",
+        "server_response": {
+            "topic": "frontend — Original profile — Mozilla Firefox",
+            "confidence": null,
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 36.502760776s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 36\n}\n]"
+        }
     },
     {
-        "window_title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
-        "time_spent_sec": 13
+        "title": "HDBSCAN - Google Search — Original profile — Mozilla Firefox",
+        "ocr_text": ".\n\nAe\n\ne\n\nHDBSCAN\n\nx\n\n4\n\nU\n\nSy\n\nfe)\n\nQ\n\n.\n\neee\n\nee\n\nAll\n\nShopping\n\nImages\n\nVideos\n\nNews\n\nShort videos\n\nMore ~\n\nTools ~\n\n—\n\nrview\n\n(Hierarchical Density-Based Spatial Clustering of\n\nHow To Use UMAP and HDBScan\n\ner\n\nns with Noise) is an advanced clustering algorithm that\n\npurtece > aoe\n\nps (clusters) in data, excelling at identifying clusters with\n\nTo Surface Insights and\n\n5 A,\n\neb am )\n\ni\n\nnsities and shapes, unlike its predecessor DBSCAN, by\n\n27 Apr 2023 — but if we don't get to.\n\nYouTube - Arize Al\n\nhierarchy of clusters and extracting the most stable ones\n\nhandling noise (outliers) without requiring a fixed number of clusters. It\n\nreating a density-based hierarchy and then using cluster stability to\n\nAlen Lal Mat Al cntavian aenanlbliinn fb enlant anal\n\nnenatlla Law anata\n\nHDBSCAN — scikit-learn 1.8.0\n\nFear\n\nShow more Vv\n\nan library\n\nndbscan.readthedocs io » latest » how_hdbscan_w.\n\nBSCAN Works — hdbscan 0.8.1 documentation\n\nis a clustering algorithm developed by Campello, Moulavi, and Sander. It extends DBSCAN\n",
+        "server_response": {
+            "topic": "HDBSCAN - Google Search — Original profile — Mozilla Firefox",
+            "confidence": null,
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 32.965273143s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 32\n}\n]"
+        }
     },
     {
-        "window_title": "(244) Network Types: LAN, WAN, PAN, CAN, MAN, SAN, WLAN - YouTube - Google Chrome",
-        "time_spent_sec": 9
+        "title": "HDBSCAN - Google Search — Original profile — Mozilla Firefox",
+        "ocr_text": ".\n\nAe\n\ne\n\nHDBSCAN\n\nx\n\n4\n\nU\n\nSy\n\nfe)\n\nQ\n\n.\n\neee\n\nee\n\nAll\n\nShopping\n\nImages\n\nVideos\n\nNews\n\nShort videos\n\nMore ~\n\nTools ~\n\n—\n\nrview\n\n(Hierarchical Density-Based Spatial Clustering of\n\nHow To Use UMAP and HDBScan\n\ner\n\nns with Noise) is an advanced clustering algorithm that\n\npurtece > aoe\n\nps (clusters) in data, excelling at identifying clusters with\n\nTo Surface Insights and\n\n5 A,\n\neb am )\n\ni\n\nnsities and shapes, unlike its predecessor DBSCAN, by\n\n27 Apr 2023 — but if we don't get to.\n\nYouTube - Arize Al\n\nhierarchy of clusters and extracting the most stable ones\n\nhandling noise (outliers) without requiring a fixed number of clusters. It\n\nreating a density-based hierarchy and then using cluster stability to\n\nAlen Lal Mat Al cntavian aenanlbliinn fb enlant anal\n\nnenatlla Law anata\n\nHDBSCAN — scikit-learn 1.8.0\n\nFear\n\nShow more Vv\n\nan library\n\nndbscan.readthedocs io » latest » how_hdbscan_w.\n\nBSCAN Works — hdbscan 0.8.1 documentation\n\nis a clustering algorithm developed by Campello, Moulavi, and Sander. It extends DBSCAN\n",
+        "server_response": {
+            "topic": "HDBSCAN - Google Search — Original profile — Mozilla Firefox",
+            "confidence": null,
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 29.436838061s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 29\n}\n]"
+        }
     },
     {
-        "window_title": "(244) Gira Gira Gingiraagirey - Video Song | Champion | Roshan | Anaswara | Ram Miriyala | Mickey J Meyer - YouTube - Google Chrome",
-        "time_spent_sec": 13
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Dashboard\n\nwR\n\no\n\nRefresh\n\nDetected topics and learning progress.\n\nDetected topics\n\nBloom’s taxonomy.\n\nintermediate\n\nHDBSCAN - Googl...\n\nintermediate\n\nKMeans - Google ...\n\nintermediate\n\nConfidence: —\n\nConfidence: —\n\nConfidence: —\n\nintermediate\n\nfrontend — Ori\n\nintermediate\n\nScreen reading det\n\nConfidence: —\n\nConfidence: —\n",
+        "server_response": {
+            "topic": "frontend — Original profile — Mozilla Firefox",
+            "confidence": null,
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 26.480841383s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 26\n}\n]"
+        }
     },
     {
-        "window_title": "RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint",
+        "title": "frontend — Original profile — Mozilla Firefox",
+        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:47\n",
+        "server_response": {
+            "topic": "frontend — Original profile — Mozilla Firefox",
+            "confidence": null,
+            "raw": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 25.583993593s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 25\n}\n]"
+        }
+    },
+    {
+        "window_title": "frontend — Original profile — Mozilla Firefox",
+        "time_spent_sec": 20
+    },
+    {
+        "window_title": "KMeans - Google Search — Original profile — Mozilla Firefox",
+        "time_spent_sec": 3
+    },
+    {
+        "window_title": "Bloom’s taxonomy - Google Search — Original profile — Mozilla Firefox",
+        "time_spent_sec": 6
+    },
+    {
+        "window_title": "HDBSCAN - Google Search — Original profile — Mozilla Firefox",
         "time_spent_sec": 6
     }
 ]
