@@ -33,14 +33,18 @@ export default function Resources() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-fg-muted">Curated resources for mastering the topic.</div>
-        <Button onClick={run} disabled={loading}>
+        <div className="text-sm font-light text-white/50">Curated resources for mastering the topic.</div>
+        <Button
+          className="rounded-xl bg-white text-black hover:bg-white/90"
+          onClick={run}
+          disabled={loading}
+        >
           {loading ? <Spinner /> : <Library size={18} />}
           Load resources
         </Button>
       </div>
 
-      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</div> : null}
+      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div> : null}
 
       {data ? (
         <div className="grid gap-3 md:grid-cols-2">
@@ -50,23 +54,23 @@ export default function Resources() {
               href={r.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-xl border bg-card p-4 hover:bg-bg-muted"
+              className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
             >
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <div className="text-sm font-semibold">{r.title}</div>
-                  <div className="text-xs text-fg-muted">
+                  <div className="text-sm font-semibold text-white">{r.title}</div>
+                  <div className="text-xs font-light text-white/50">
                     {r.type}{r.source ? ` • ${r.source}` : ''}
                   </div>
                 </div>
-                <ExternalLink size={16} />
+                <ExternalLink size={16} className="text-white/40 transition group-hover:text-white/70" />
               </div>
-              {r.snippet ? <div className="mt-2 text-xs text-fg-muted">{r.snippet}</div> : null}
+              {r.snippet ? <div className="mt-2 text-xs font-light text-white/50">{r.snippet}</div> : null}
             </a>
           ))}
         </div>
       ) : (
-        <div className="text-sm text-fg-muted">Load to view dummy links (replace with real suggestions later).</div>
+        <div className="text-sm font-light text-white/40">Load to view dummy links (replace with real suggestions later).</div>
       )}
     </div>
   )

@@ -85,29 +85,29 @@ function hierarchicalLayout(nodes, edges) {
 function getNodeStyle(kind, depth, isSelected) {
   const baseStyles = {
     core: {
-      fill: 'hsl(var(--primary) / 0.15)',
-      stroke: 'hsl(var(--primary))',
-      text: 'hsl(var(--primary))',
+      fill: 'rgba(99, 102, 241, 0.15)',
+      stroke: 'rgb(129, 140, 248)',
+      text: 'rgb(165, 180, 252)',
     },
     subtopic: {
-      fill: 'hsl(var(--accent) / 0.1)',
-      stroke: 'hsl(var(--accent-foreground) / 0.5)',
-      text: 'hsl(var(--fg))',
+      fill: 'rgba(255, 255, 255, 0.05)',
+      stroke: 'rgba(255, 255, 255, 0.2)',
+      text: 'rgba(255, 255, 255, 0.8)',
     },
     detail: {
-      fill: 'hsl(var(--bg-muted))',
-      stroke: 'hsl(var(--border))',
-      text: 'hsl(var(--fg-muted))',
+      fill: 'rgba(255, 255, 255, 0.03)',
+      stroke: 'rgba(255, 255, 255, 0.1)',
+      text: 'rgba(255, 255, 255, 0.6)',
     },
     prereq: {
-      fill: 'hsl(var(--bg))',
-      stroke: 'hsl(var(--border))',
-      text: 'hsl(var(--fg-muted))',
+      fill: 'rgba(255, 255, 255, 0.02)',
+      stroke: 'rgba(255, 255, 255, 0.1)',
+      text: 'rgba(255, 255, 255, 0.5)',
     },
     next: {
-      fill: 'hsl(var(--bg))',
-      stroke: 'hsl(var(--border))',
-      text: 'hsl(var(--fg-muted))',
+      fill: 'rgba(255, 255, 255, 0.02)',
+      stroke: 'rgba(255, 255, 255, 0.1)',
+      text: 'rgba(255, 255, 255, 0.5)',
     },
   }
   
@@ -115,9 +115,9 @@ function getNodeStyle(kind, depth, isSelected) {
   
   if (isSelected) {
     return {
-      fill: 'hsl(var(--card))',
-      stroke: 'hsl(var(--primary))',
-      text: 'hsl(var(--fg))',
+      fill: 'rgba(99, 102, 241, 0.2)',
+      stroke: 'rgb(129, 140, 248)',
+      text: 'white',
       strokeWidth: 3,
     }
   }
@@ -154,19 +154,19 @@ function TopicSelector() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-sm text-fg-muted mb-4">
+        <div className="text-sm font-light text-white/50 mb-4">
           Choose a detected topic to view its concept dependency graph.
         </div>
         
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-fg-muted">
+          <div className="flex items-center gap-2 text-sm text-white/60">
             <Spinner /> Loading topics…
           </div>
         ) : topics.length === 0 ? (
           <div className="text-center py-8">
-            <Network size={48} className="mx-auto mb-4 text-fg-muted opacity-50" />
-            <div className="text-fg-muted">No topics detected yet.</div>
-            <div className="mt-2 text-sm text-fg-muted">
+            <Network size={48} className="mx-auto mb-4 text-white/30" />
+            <div className="text-white/60">No topics detected yet.</div>
+            <div className="mt-2 text-sm font-light text-white/40">
               Start the detector on the Detection page to capture topics.
             </div>
           </div>
@@ -176,14 +176,14 @@ function TopicSelector() {
               <a
                 key={t.id}
                 href={`?topic=${encodeURIComponent(t.id)}`}
-                className="flex items-center gap-3 rounded-xl border p-4 hover:bg-bg-muted transition-colors"
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
               >
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-500/15 text-indigo-400">
                   <Network size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-xs text-fg-muted">{t.level || 'Unknown level'}</div>
+                  <div className="font-medium text-white truncate">{t.title}</div>
+                  <div className="text-xs font-light text-white/50">{t.level || 'Unknown level'}</div>
                 </div>
               </a>
             ))}
@@ -276,7 +276,7 @@ export default function DependencyGraph() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-fg-muted">
+      <div className="flex items-center gap-2 text-sm text-white/60">
         <Spinner /> Building concept graph…
       </div>
     )
@@ -287,8 +287,13 @@ export default function DependencyGraph() {
       <Card>
         <CardContent className="py-8">
           <div className="text-center">
-            <div className="text-sm text-red-500 mb-4">{error}</div>
-            <Button variant="outline" size="sm" onClick={loadGraph}>
+            <div className="text-sm text-red-400 mb-4">{error}</div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+              onClick={loadGraph}
+            >
               <RefreshCw size={14} className="mr-2" /> Retry
             </Button>
           </div>
@@ -331,13 +336,13 @@ export default function DependencyGraph() {
           </div>
           
           {showSettings && (
-            <div className="mt-4 p-4 rounded-lg bg-bg-muted border space-y-3">
-              <div className="text-sm font-medium">Graph Settings</div>
+            <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+              <div className="text-sm font-medium text-white">Graph Settings</div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="space-y-1">
-                  <span className="text-xs text-fg-muted">Max Depth (0-2)</span>
+                  <span className="text-xs text-white/50">Max Depth (0-2)</span>
                   <select
-                    className="w-full rounded border bg-bg p-2 text-sm"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 p-2 text-sm text-white"
                     value={options.maxDepth}
                     onChange={(e) => setOptions(o => ({ ...o, maxDepth: parseInt(e.target.value) }))}
                   >
@@ -347,9 +352,9 @@ export default function DependencyGraph() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs text-fg-muted">Max Children</span>
+                  <span className="text-xs text-white/50">Max Children</span>
                   <select
-                    className="w-full rounded border bg-bg p-2 text-sm"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 p-2 text-sm text-white"
                     value={options.maxChildren}
                     onChange={(e) => setOptions(o => ({ ...o, maxChildren: parseInt(e.target.value) }))}
                   >
@@ -363,12 +368,12 @@ export default function DependencyGraph() {
                     type="checkbox"
                     checked={options.useGemini}
                     onChange={(e) => setOptions(o => ({ ...o, useGemini: e.target.checked }))}
-                    className="rounded"
+                    className="rounded accent-indigo-500"
                   />
-                  <span className="text-sm">Use AI expansion</span>
+                  <span className="text-sm text-white/80">Use AI expansion</span>
                 </label>
               </div>
-              <Button size="sm" onClick={loadGraph}>Apply</Button>
+              <Button className="rounded-xl bg-white text-black hover:bg-white/90" size="sm" onClick={loadGraph}>Apply</Button>
             </div>
           )}
         </CardHeader>
@@ -381,17 +386,19 @@ export default function DependencyGraph() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-lg border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
                   onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
                   disabled={zoom <= 0.5}
                 >
                   <ZoomOut size={14} />
                 </Button>
-                <span className="text-sm text-fg-muted min-w-[4rem] text-center">
+                <span className="text-sm text-white/60 min-w-[4rem] text-center">
                   {Math.round(zoom * 100)}%
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-lg border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
                   onClick={() => setZoom(z => Math.min(2, z + 0.25))}
                   disabled={zoom >= 2}
                 >
@@ -400,20 +407,21 @@ export default function DependencyGraph() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-lg border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
                   onClick={() => setZoom(1)}
                   title="Reset zoom"
                 >
                   <Maximize2 size={14} />
                 </Button>
               </div>
-              <div className="text-xs text-fg-muted">
+              <div className="text-xs text-white/50">
                 Scroll to pan • Click nodes to select
               </div>
             </div>
             
             <div 
               ref={svgContainerRef}
-              className="rounded-xl border bg-gradient-to-br from-bg-muted to-bg overflow-auto"
+              className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.03] to-black overflow-auto"
               style={{ maxHeight: '600px' }}
             >
               <svg 
@@ -556,7 +564,7 @@ export default function DependencyGraph() {
                           x={p.x}
                           y={p.y + 22}
                           textAnchor="middle"
-                          fill="hsl(var(--primary))"
+                          fill="rgb(129, 140, 248)"
                           fontSize="11"
                           fontFamily="ui-sans-serif, system-ui"
                           fontWeight="600"
@@ -570,7 +578,7 @@ export default function DependencyGraph() {
               </svg>
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-xs text-fg-muted">
+            <div className="mt-3 flex items-center justify-between text-xs text-white/50">
               <span>
                 {graph.nodes.length} concepts • {graph.edges.length} relationships • 
                 Depth: {graph.maxDepth}
@@ -582,17 +590,17 @@ export default function DependencyGraph() {
           {/* Side panel */}
           <div className="space-y-3">
             {/* Selected concept details */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold mb-3">Selected Concept</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white mb-3">Selected Concept</div>
               {selectedNode ? (
                 <div className="space-y-2">
-                  <div className="text-base font-medium">{selectedNode.label}</div>
-                  <div className="flex items-center gap-2 text-xs text-fg-muted">
+                  <div className="text-base font-medium text-white">{selectedNode.label}</div>
+                  <div className="flex items-center gap-2 text-xs text-white/60">
                     <span className={cn(
                       'px-2 py-0.5 rounded-full',
-                      selectedNode.kind === 'core' && 'bg-primary/20 text-primary',
-                      selectedNode.kind === 'subtopic' && 'bg-accent/20',
-                      selectedNode.kind === 'detail' && 'bg-bg-muted',
+                      selectedNode.kind === 'core' && 'bg-indigo-500/20 text-indigo-400',
+                      selectedNode.kind === 'subtopic' && 'bg-white/10',
+                      selectedNode.kind === 'detail' && 'bg-white/5',
                     )}>
                       {selectedNode.kind}
                     </span>
@@ -603,15 +611,15 @@ export default function DependencyGraph() {
                   
                   {/* Show children if any */}
                   {childNodes.length > 0 && (
-                    <div className="mt-3 pt-3 border-t">
-                      <div className="text-xs text-fg-muted mb-2">
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <div className="text-xs text-white/50 mb-2">
                         Contains {childNodes.length} subtopics:
                       </div>
                       <ul className="space-y-1">
                         {childNodes.map(child => (
                           <li
                             key={child.id}
-                            className="text-sm text-fg-muted hover:text-fg cursor-pointer flex items-center gap-1"
+                            className="text-sm text-white/60 hover:text-white cursor-pointer flex items-center gap-1 transition"
                             onClick={() => setSelected(child.id)}
                           >
                             <ChevronRight size={12} />
@@ -623,33 +631,33 @@ export default function DependencyGraph() {
                   )}
                 </div>
               ) : (
-                <div className="text-sm text-fg-muted">No concept selected</div>
+                <div className="text-sm font-light text-white/40">No concept selected</div>
               )}
             </div>
 
             {/* Legend */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold mb-3">Legend</div>
-              <div className="space-y-2 text-xs">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white mb-3">Legend</div>
+              <div className="space-y-2 text-xs text-white/70">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-primary/20 border border-primary"></div>
+                  <div className="w-4 h-4 rounded bg-indigo-500/20 border border-indigo-400"></div>
                   <span>Core Topic</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-accent/10 border border-accent-foreground/50"></div>
+                  <div className="w-4 h-4 rounded bg-white/5 border border-white/20"></div>
                   <span>Subtopic (L1)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-bg-muted border"></div>
+                  <div className="w-4 h-4 rounded bg-white/[0.03] border border-white/10"></div>
                   <span>Detail (L2)</span>
                 </div>
               </div>
             </div>
 
             {/* Navigation hints */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold mb-2">Learning Path</div>
-              <div className="text-xs text-fg-muted">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white mb-2">Learning Path</div>
+              <div className="text-xs font-light text-white/50">
                 Start with the core concept, then explore subtopics for deeper understanding.
                 Each level builds on the previous one.
               </div>

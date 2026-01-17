@@ -86,23 +86,27 @@ export default function Quiz() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-fg-muted">
-          Take a quick quiz for this subtopic; we’ll infer knowledge level and weak areas.
+        <div className="text-sm font-light text-white/50">
+          Take a quick quiz for this subtopic; we'll infer knowledge level and weak areas.
         </div>
-        <Button onClick={loadQuiz} disabled={loading}>
+        <Button
+          className="rounded-xl bg-white text-black hover:bg-white/90"
+          onClick={loadQuiz}
+          disabled={loading}
+        >
           {loading ? <Spinner /> : <CheckCircle2 size={18} />}
           Load quiz
         </Button>
       </div>
 
-      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</div> : null}
+      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div> : null}
 
       {data ? (
         <div className="space-y-4">
           {data.questions.map((q, idx) => (
-            <div key={idx} className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold">
-                Q{idx + 1}. <span className="font-normal">{q.question}</span>
+            <div key={idx} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white">
+                Q{idx + 1}. <span className="font-normal text-white/80">{q.question}</span>
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {q.options.map((c, i) => {
@@ -111,7 +115,11 @@ export default function Quiz() {
                     <label
                       key={c}
                       className={
-                        'flex cursor-pointer items-center gap-2 rounded-xl border bg-bg-muted px-3 py-2 text-sm hover:bg-bg-muted/70'
+                        `flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+                          checked
+                            ? 'border-indigo-500/50 bg-indigo-500/15 text-white'
+                            : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'
+                        }`
                       }
                     >
                       <input
@@ -119,6 +127,7 @@ export default function Quiz() {
                         name={`q_${idx}`}
                         checked={checked}
                         onChange={() => setAnswers((a) => ({ ...a, [idx]: i }))}
+                        className="accent-indigo-500"
                       />
                       <span>
                         {String.fromCharCode(65 + i)}. {c}
@@ -132,6 +141,7 @@ export default function Quiz() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              className="rounded-xl bg-white text-black hover:bg-white/90"
               onClick={submitAttempt}
               disabled={
                 submitted ||
@@ -143,6 +153,7 @@ export default function Quiz() {
             </Button>
             <Button
               variant="secondary"
+              className="rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
               onClick={() => {
                 setAnswers({})
                 setSubmitted(false)
@@ -154,31 +165,31 @@ export default function Quiz() {
           </div>
 
           {result ? (
-            <div className="rounded-xl border bg-bg-muted p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <ShieldAlert size={16} /> Result
               </div>
               <div className="mt-2 grid gap-3 md:grid-cols-4">
                 <div>
-                  <div className="text-xs text-fg-muted">Score</div>
-                  <div className="text-lg font-semibold">{result.pct}%</div>
+                  <div className="text-xs text-white/50">Score</div>
+                  <div className="text-lg font-semibold text-white">{result.pct}%</div>
                 </div>
                 <div>
-                  <div className="text-xs text-fg-muted">Correct</div>
-                  <div className="text-lg font-semibold">
+                  <div className="text-xs text-white/50">Correct</div>
+                  <div className="text-lg font-semibold text-white">
                     {result.correct}/{result.total}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-fg-muted">Inferred level</div>
-                  <div className="text-lg font-semibold">{result.inferredLevel}</div>
+                  <div className="text-xs text-white/50">Inferred level</div>
+                  <div className="text-lg font-semibold text-white">{result.inferredLevel}</div>
                 </div>
               </div>
             </div>
           ) : null}
         </div>
       ) : (
-        <div className="text-sm text-fg-muted">Load quiz to answer dummy questions.</div>
+        <div className="text-sm font-light text-white/40">Load quiz to answer dummy questions.</div>
       )}
     </div>
   )

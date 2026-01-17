@@ -237,8 +237,13 @@ export default function Timetable() {
           {/* Events Section */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium">Fixed Events (Exams, Assignments, Deadlines)</label>
-              <Button variant="ghost" size="sm" onClick={addEvent}>
+              <label className="text-sm font-medium text-white">Fixed Events (Exams, Assignments, Deadlines)</label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10"
+                onClick={addEvent}
+              >
                 <Plus size={16} /> Add Event
               </Button>
             </div>
@@ -247,12 +252,12 @@ export default function Timetable() {
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border bg-bg-muted p-2"
+                  className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2"
                 >
                   <select
                     value={event.event_type}
                     onChange={(e) => updateEvent(event.id, 'event_type', e.target.value)}
-                    className="h-9 rounded-md border bg-card px-2 text-sm"
+                    className="h-9 rounded-lg border border-white/10 bg-white/5 px-2 text-sm text-white"
                   >
                     <option value="exam">Exam</option>
                     <option value="assignment">Assignment</option>
@@ -283,7 +288,7 @@ export default function Timetable() {
                   />
 
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-fg-muted">Pri:</span>
+                    <span className="text-xs text-white/50">Pri:</span>
                     <Input
                       type="number"
                       min={1}
@@ -295,7 +300,7 @@ export default function Timetable() {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-fg-muted">Hours:</span>
+                    <span className="text-xs text-white/50">Hours:</span>
                     <Input
                       type="number"
                       min={0.5}
@@ -320,7 +325,7 @@ export default function Timetable() {
               ))}
 
               {events.length === 0 && (
-                <div className="rounded-lg border border-dashed p-4 text-center text-sm text-fg-muted">
+                <div className="rounded-lg border border-dashed border-white/10 p-4 text-center text-sm text-white/50">
                   No events added. Click "Add Event" to add exams, assignments, or deadlines.
                 </div>
               )}
@@ -331,7 +336,7 @@ export default function Timetable() {
           <div>
             <button
               onClick={() => setShowTopics(!showTopics)}
-              className="flex w-full items-center justify-between rounded-lg border bg-bg-muted p-2 text-sm font-medium hover:bg-bg-muted/80"
+              className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 text-sm font-medium text-white hover:bg-white/10"
             >
               <span className="flex items-center gap-2">
                 <BookOpen size={16} />
@@ -341,7 +346,7 @@ export default function Timetable() {
             </button>
 
             {showTopics && (
-              <div className="mt-2 space-y-2 rounded-lg border p-3">
+              <div className="mt-2 space-y-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
                 <div className="flex justify-end">
                   <Button variant="ghost" size="sm" onClick={addTopic}>
                     <Plus size={16} /> Add Topic
@@ -351,7 +356,7 @@ export default function Timetable() {
                 {topics.map((topic) => (
                   <div
                     key={topic.id}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-2"
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2"
                   >
                     <Input
                       placeholder="Subject"
@@ -368,7 +373,7 @@ export default function Timetable() {
                     />
 
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-fg-muted">Difficulty:</span>
+                      <span className="text-xs text-white/50">Difficulty:</span>
                       <Input
                         type="number"
                         min={0}
@@ -383,7 +388,7 @@ export default function Timetable() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-fg-muted">Confidence:</span>
+                      <span className="text-xs text-white/50">Confidence:</span>
                       <Input
                         type="number"
                         min={0}
@@ -398,7 +403,7 @@ export default function Timetable() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-fg-muted">Hours:</span>
+                      <span className="text-xs text-white/50">Hours:</span>
                       <Input
                         type="number"
                         min={0.5}
@@ -433,7 +438,7 @@ export default function Timetable() {
                 ))}
 
                 {topics.length === 0 && (
-                  <div className="text-center text-sm text-fg-muted">
+                  <div className="text-center text-sm text-white/50">
                     Add learning topics to include them in your study plan.
                   </div>
                 )}
@@ -445,7 +450,7 @@ export default function Timetable() {
           <div>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex w-full items-center justify-between rounded-lg border bg-bg-muted p-2 text-sm font-medium hover:bg-bg-muted/80"
+              className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 text-sm font-medium text-white hover:bg-white/10"
             >
               <span className="flex items-center gap-2">
                 <Settings size={16} />
@@ -455,12 +460,12 @@ export default function Timetable() {
             </button>
 
             {showSettings && (
-              <div className="mt-2 grid gap-4 rounded-lg border p-3 sm:grid-cols-2">
+              <div className="mt-2 grid gap-4 rounded-lg border border-white/10 bg-white/[0.02] p-3 sm:grid-cols-2">
                 <div>
                   <h4 className="mb-2 text-sm font-medium">Availability</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Weekday hours:</label>
+                      <label className="w-32 text-xs text-white/50">Weekday hours:</label>
                       <Input
                         type="number"
                         min={0}
@@ -473,7 +478,7 @@ export default function Timetable() {
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Weekend hours:</label>
+                      <label className="w-32 text-xs text-white/50">Weekend hours:</label>
                       <Input
                         type="number"
                         min={0}
@@ -486,7 +491,7 @@ export default function Timetable() {
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Start time:</label>
+                      <label className="w-32 text-xs text-white/50">Start time:</label>
                       <Input
                         type="time"
                         value={availability.startTime}
@@ -495,7 +500,7 @@ export default function Timetable() {
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">End time:</label>
+                      <label className="w-32 text-xs text-white/50">End time:</label>
                       <Input
                         type="time"
                         value={availability.endTime}
@@ -510,7 +515,7 @@ export default function Timetable() {
                   <h4 className="mb-2 text-sm font-medium">Preferences</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Session length:</label>
+                      <label className="w-32 text-xs text-white/50">Session length:</label>
                       <Input
                         type="number"
                         min={15}
@@ -524,10 +529,10 @@ export default function Timetable() {
                         }
                         className="h-8 w-20"
                       />
-                      <span className="text-xs text-fg-muted">min</span>
+                      <span className="text-xs text-white/50">min</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Break length:</label>
+                      <label className="w-32 text-xs text-white/50">Break length:</label>
                       <Input
                         type="number"
                         min={0}
@@ -541,10 +546,10 @@ export default function Timetable() {
                         }
                         className="h-8 w-20"
                       />
-                      <span className="text-xs text-fg-muted">min</span>
+                      <span className="text-xs text-white/50">min</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Max sessions/day:</label>
+                      <label className="w-32 text-xs text-white/50">Max sessions/day:</label>
                       <Input
                         type="number"
                         min={1}
@@ -560,7 +565,7 @@ export default function Timetable() {
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="w-32 text-xs text-fg-muted">Max subjects/day:</label>
+                      <label className="w-32 text-xs text-white/50">Max subjects/day:</label>
                       <Input
                         type="number"
                         min={1}
@@ -583,11 +588,20 @@ export default function Timetable() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
-            <Button onClick={generate} disabled={loading}>
+            <Button
+              className="rounded-xl bg-white text-black hover:bg-white/90"
+              onClick={generate}
+              disabled={loading}
+            >
               {loading ? <Spinner /> : <Wand2 size={18} />}
               Generate Timetable
             </Button>
-            <Button variant="outline" onClick={loadSample} disabled={loading}>
+            <Button
+              variant="outline"
+              className="rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+              onClick={loadSample}
+              disabled={loading}
+            >
               Load Sample
             </Button>
           </div>
@@ -607,27 +621,27 @@ export default function Timetable() {
         <>
           {/* Stats Bar */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            <div className="rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-bold">{stats.totalTasks}</div>
-              <div className="text-xs text-fg-muted">Total Tasks</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
+              <div className="text-2xl font-bold text-white">{stats.totalTasks}</div>
+              <div className="text-xs font-light text-white/50">Total Tasks</div>
             </div>
-            <div className="rounded-lg border bg-card p-3 text-center">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
               <div className="text-2xl font-bold text-green-400">{stats.scheduledTasks}</div>
-              <div className="text-xs text-fg-muted">Scheduled</div>
+              <div className="text-xs font-light text-white/50">Scheduled</div>
             </div>
-            <div className="rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-bold">{stats.totalEvents}</div>
-              <div className="text-xs text-fg-muted">Events</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
+              <div className="text-2xl font-bold text-white">{stats.totalEvents}</div>
+              <div className="text-xs font-light text-white/50">Events</div>
             </div>
-            <div className="rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-bold">{stats.totalTopics}</div>
-              <div className="text-xs text-fg-muted">Topics</div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
+              <div className="text-2xl font-bold text-white">{stats.totalTopics}</div>
+              <div className="text-xs font-light text-white/50">Topics</div>
             </div>
-            <div className="rounded-lg border bg-card p-3 text-center">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
               <div className={`text-2xl font-bold ${stats.warningsCount > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
                 {stats.warningsCount}
               </div>
-              <div className="text-xs text-fg-muted">Warnings</div>
+              <div className="text-xs font-light text-white/50">Warnings</div>
             </div>
           </div>
 
@@ -651,7 +665,7 @@ export default function Timetable() {
                       }`}
                     >
                       <div className="text-sm">{warning.message}</div>
-                      <div className="mt-1 text-xs text-fg-muted">
+                      <div className="mt-1 text-xs text-white/50">
                         Date: {formatDate(warning.date)} • Tasks: {warning.affected_tasks?.join(', ')}
                       </div>
                     </div>
@@ -682,14 +696,14 @@ export default function Timetable() {
                       onClick={() => setSelectedDate(dateStr)}
                       className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                          ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
                           : hasSlots
-                            ? 'hover:border-fg-muted hover:bg-bg-muted'
-                            : 'opacity-50'
+                            ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                            : 'border-white/10 opacity-50'
                       }`}
                     >
                       <div className="font-medium">{formatDate(dateStr)}</div>
-                      <div className="text-xs text-fg-muted">
+                      <div className="text-xs text-white/50">
                         {dayData?.session_count || 0} sessions
                       </div>
                     </button>
@@ -700,7 +714,7 @@ export default function Timetable() {
               {/* Selected Day Schedule */}
               {selectedDate && data.schedule[selectedDate] && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm text-fg-muted">
+                  <div className="flex items-center justify-between text-sm text-white/50">
                     <span>
                       {data.schedule[selectedDate].subjects_covered?.length || 0} subject(s) •{' '}
                       {formatDuration(data.schedule[selectedDate].total_study_minutes || 0)} total
@@ -715,17 +729,17 @@ export default function Timetable() {
                       {data.schedule[selectedDate].slots.map((slot, idx) => (
                         <div
                           key={idx}
-                          className={`flex items-center gap-3 rounded-lg border p-3 ${
+                          className={`flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3 ${
                             slot.is_break ? 'border-dashed opacity-50' : ''
                           }`}
                         >
                           <div className="flex w-24 flex-col items-center text-sm">
                             <span className="font-mono font-medium">{formatTime(slot.start_time)}</span>
-                            <span className="text-xs text-fg-muted">to</span>
+                            <span className="text-xs text-white/50">to</span>
                             <span className="font-mono">{formatTime(slot.end_time)}</span>
                           </div>
 
-                          <div className="h-10 w-px bg-border" />
+                          <div className="h-10 w-px bg-white/10" />
 
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
@@ -734,15 +748,15 @@ export default function Timetable() {
                                 {slot.task_type?.replace('_', ' ')}
                               </Badge>
                             </div>
-                            <div className="text-sm text-fg-muted">{slot.subject}</div>
+                            <div className="text-sm text-white/60">{slot.subject}</div>
                           </div>
 
-                          <div className="text-xs text-fg-muted">{slot.task_id}</div>
+                          <div className="text-xs text-white/50">{slot.task_id}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-dashed p-8 text-center text-fg-muted">
+                    <div className="rounded-lg border border-dashed border-white/10 p-8 text-center text-white/50">
                       No study sessions scheduled for this day
                     </div>
                   )}
@@ -761,7 +775,7 @@ export default function Timetable() {
             <CardContent>
               <div className="space-y-2">
                 {data.tasks?.slice(0, 20).map((task) => (
-                  <div key={task.task_id} className="flex items-center gap-3 rounded-lg border p-2 text-sm">
+                  <div key={task.task_id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-2 text-sm">
                     <div
                       className={`h-2 w-2 rounded-full ${
                         task.status === 'scheduled'
@@ -773,19 +787,19 @@ export default function Timetable() {
                     />
                     <div className="flex-1">
                       <span className="font-medium">{task.topic}</span>
-                      <span className="text-fg-muted"> • {task.subject}</span>
+                      <span className="text-white/50"> • {task.subject}</span>
                     </div>
                     <Badge className={TASK_TYPE_COLORS[task.task_type] || ''}>{task.task_type}</Badge>
-                    <div className="text-xs text-fg-muted">
+                    <div className="text-xs text-white/50">
                       {task.scheduled_date ? formatDate(task.scheduled_date) : 'Unscheduled'}
                     </div>
-                    <div className="w-16 text-right text-xs text-fg-muted">
+                    <div className="w-16 text-right text-xs text-white/50">
                       {formatDuration(task.required_minutes)}
                     </div>
                   </div>
                 ))}
                 {data.tasks?.length > 20 && (
-                  <div className="text-center text-sm text-fg-muted">
+                  <div className="text-center text-sm text-white/50">
                     ...and {data.tasks.length - 20} more tasks
                   </div>
                 )}

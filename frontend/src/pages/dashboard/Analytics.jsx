@@ -6,11 +6,11 @@ import * as api from '../../services/api'
 
 function Stat({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <div className="flex items-center gap-2 text-xs text-fg-muted">
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex items-center gap-2 text-xs font-light text-white/50">
         <Icon size={16} /> {label}
       </div>
-      <div className="mt-2 text-2xl font-semibold">{value}</div>
+      <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
     </div>
   )
 }
@@ -42,22 +42,22 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-fg-muted">
+      <div className="flex items-center gap-2 text-sm text-white/60">
         <Spinner /> Loading analytics…
       </div>
     )
   }
 
   if (error) {
-    return <div className="text-sm text-red-500">{error}</div>
+    return <div className="text-sm text-red-400">{error}</div>
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xl font-semibold">Analytics</div>
-          <div className="text-sm text-fg-muted">Topics, progress, time spent, and performance insights.</div>
+          <div className="text-xl font-semibold text-white">Analytics</div>
+          <div className="text-sm font-light text-white/60">Topics, progress, time spent, and performance insights.</div>
         </div>
       </div>
 
@@ -74,17 +74,17 @@ export default function Analytics() {
         </CardHeader>
         <CardContent className="space-y-3">
           {data.byTopic.map((t) => (
-            <div key={t.id} className="rounded-xl border bg-bg-muted p-4">
+            <div key={t.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold">{t.title}</div>
-                  <div className="text-xs text-fg-muted">{t.minutes} min • score {t.score}%</div>
+                  <div className="text-sm font-semibold text-white">{t.title}</div>
+                  <div className="text-xs font-light text-white/50">{t.minutes} min • score {t.score}%</div>
                 </div>
-                <div className="text-sm font-medium">{Math.round(t.progress * 100)}%</div>
+                <div className="text-sm font-medium text-white/80">{Math.round(t.progress * 100)}%</div>
               </div>
-              <div className="mt-3 h-2 w-full rounded-full bg-border">
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-2 rounded-full bg-primary"
+                  className="h-2 rounded-full bg-indigo-500"
                   style={{ width: `${Math.round(t.progress * 100)}%` }}
                 />
               </div>

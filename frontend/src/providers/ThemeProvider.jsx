@@ -1,38 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 
 const ThemeContext = createContext(null)
 
-const STORAGE_KEY = 'ala.theme'
-
-function applyThemeClass(theme) {
+function applyThemeClass() {
   const root = document.documentElement
-  root.classList.toggle('dark', theme === 'dark')
+  root.classList.remove('light')
+  root.classList.add('dark')
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light')
+  // Always use dark theme
+  const theme = 'dark'
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY)
-    const initial = stored === 'dark' || stored === 'light' ? stored : 'light'
-    setTheme(initial)
-    applyThemeClass(initial)
+    applyThemeClass()
   }, [])
 
-  const updateTheme = useCallback((next) => {
-    setTheme(next)
-    window.localStorage.setItem(STORAGE_KEY, next)
-    applyThemeClass(next)
-  }, [])
-
-  const toggleTheme = useCallback(() => {
-    updateTheme(theme === 'dark' ? 'light' : 'dark')
-  }, [theme, updateTheme])
-
-  const value = useMemo(
-    () => ({ theme, setTheme: updateTheme, toggleTheme }),
-    [theme, updateTheme, toggleTheme],
-  )
+  const value = useMemo(() => ({ theme }), [])
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }

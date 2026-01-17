@@ -31,14 +31,14 @@ export default function Suggestions() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-fg-muted">
+      <div className="flex items-center gap-2 text-sm text-white/60">
         <Spinner /> Loading suggestions…
       </div>
     )
   }
 
   if (error) {
-    return <div className="text-sm text-red-500">{error}</div>
+    return <div className="text-sm text-red-400">{error}</div>
   }
 
   return (
@@ -49,14 +49,14 @@ export default function Suggestions() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="text-sm text-fg-muted">
+        <div className="text-sm font-light text-white/50">
           The agent suggests connected topics and what to learn next.
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           {data.suggestions.map((s) => (
-            <div key={s.id} className="rounded-xl border bg-bg-muted p-4">
-              <div className="text-sm font-semibold">{s.title}</div>
-              <div className="mt-1 text-sm text-fg-muted">{s.reason}</div>
+            <div key={s.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="text-sm font-semibold text-white">{s.title}</div>
+              <div className="mt-1 text-sm font-light text-white/60">{s.reason}</div>
             </div>
           ))}
         </div>

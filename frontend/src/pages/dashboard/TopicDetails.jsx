@@ -53,7 +53,7 @@ export default function TopicDetails() {
     return (
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={levelVariant(topic.level)}>{topic.level}</Badge>
-        <Badge className="bg-bg-muted text-fg">
+        <Badge className="border border-white/10 bg-white/5 text-white/80">
           {topic.confidence === null || topic.confidence === undefined
             ? 'Confidence: —'
             : `${Math.round(topic.confidence * 100)}% confidence`}
@@ -64,7 +64,7 @@ export default function TopicDetails() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-fg-muted">
+      <div className="flex items-center gap-2 text-sm text-white/60">
         <Spinner /> Loading topic…
       </div>
     )
@@ -77,9 +77,9 @@ export default function TopicDetails() {
           <CardTitle>Topic</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-red-500">{error}</div>
+          <div className="text-sm text-red-400">{error}</div>
           <div className="mt-4">
-            <Link to="/dashboard/topics" className="inline-flex items-center gap-2 text-sm font-medium hover:underline">
+            <Link to="/dashboard/topics" className="inline-flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white">
               <ArrowLeft size={16} /> Back to topics
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function TopicDetails() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
-          className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium hover:bg-bg-muted"
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft size={16} /> Back
@@ -105,13 +105,13 @@ export default function TopicDetails() {
         <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <CardTitle className="truncate">{topic.title}</CardTitle>
-            <div className="mt-1 text-sm text-fg-muted">
+            <div className="mt-1 text-sm font-light text-white/50">
               Two views: what was detected, and a subtopic roadmap to master it.
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {(topic.tags || []).map((t) => (
-              <Badge key={t} className="bg-bg-muted text-fg">
+              <Badge key={t} className="border border-white/10 bg-white/5 text-white/70">
                 {t}
               </Badge>
             ))}
@@ -125,8 +125,10 @@ export default function TopicDetails() {
                 to={t.to}
                 className={({ isActive }) =>
                   cn(
-                    'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium hover:bg-bg-muted',
-                    isActive && 'bg-bg-muted',
+                    'inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm font-medium transition',
+                    isActive
+                      ? 'bg-white/10 text-white'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/90',
                   )
                 }
               >
@@ -136,7 +138,7 @@ export default function TopicDetails() {
             ))}
             <Link
               to={`/dashboard/dependency-graph?topic=${topicId}`}
-              className="inline-flex items-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20"
+              className="inline-flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-sm font-medium text-indigo-400 transition hover:bg-indigo-500/20"
             >
               <Network size={16} />
               View Graph

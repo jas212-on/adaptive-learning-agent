@@ -33,44 +33,48 @@ export default function Explainer() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-fg-muted">
+        <div className="text-sm font-light text-white/50">
           The explainer goes beyond detected snippets (structure + mental models).
         </div>
-        <Button onClick={run} disabled={loading}>
+        <Button
+          className="rounded-xl bg-white text-black hover:bg-white/90"
+          onClick={run}
+          disabled={loading}
+        >
           {loading ? <Spinner /> : <Lightbulb size={18} />}
           Generate explainer
         </Button>
       </div>
 
-      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</div> : null}
+      {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div> : null}
 
       {data ? (
         <div className="space-y-4">
-          <div className="rounded-xl border bg-bg-muted p-4">
-            <div className="text-sm font-semibold">Overview</div>
-            <div className="mt-2 text-sm text-fg-muted">{data.overview}</div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="text-sm font-semibold text-white">Overview</div>
+            <div className="mt-2 text-sm font-light text-white/60">{data.overview}</div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold">Prerequisites</div>
-              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white">Prerequisites</div>
+              <ul className="mt-2 space-y-1 text-sm font-light text-white/60">
                 {(data.prerequisites || []).map((b) => (
                   <li key={b}>• {b}</li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold">Key ideas</div>
-              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white">Key ideas</div>
+              <ul className="mt-2 space-y-1 text-sm font-light text-white/60">
                 {(data.keyIdeas || []).map((b) => (
                   <li key={b}>• {b}</li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-sm font-semibold">Pitfalls</div>
-              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-sm font-semibold text-white">Pitfalls</div>
+              <ul className="mt-2 space-y-1 text-sm font-light text-white/60">
                 {(data.pitfalls || []).map((b) => (
                   <li key={b}>• {b}</li>
                 ))}
@@ -81,7 +85,7 @@ export default function Explainer() {
           
         </div>
       ) : (
-        <div className="text-sm text-fg-muted">Click “Generate explainer” to fetch the explainer via Gemini.</div>
+        <div className="text-sm font-light text-white/40">Click "Generate explainer" to fetch the explainer via Gemini.</div>
       )}
     </div>
   )

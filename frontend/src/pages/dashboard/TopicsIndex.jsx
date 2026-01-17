@@ -18,7 +18,7 @@ export default function TopicsIndex() {
       </CardHeader>
       <CardContent>
         {topics.length === 0 ? (
-          <div className="text-sm text-fg-muted">No topics detected yet.</div>
+          <div className="text-sm font-light text-white/50">No topics detected yet.</div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {topics.map((t) => (
