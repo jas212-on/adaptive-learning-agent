@@ -40,5 +40,26 @@
     "Multiple Access Methods",
     "Wireless Network Protocols",
     "Wireless Network Security"
+  ],
+  "cbec8fc72d5c0c93": [
+    "DNA Replication",
+    "RNA Transcription",
+    "Protein Translation",
+    "Gene Regulation",
+    "Recombinant DNA Technology"
+  ],
+  "d1cc6bd9f71be1be": [
+    "Origin of Replication",
+    "DNA Unwinding Helicase",
+    "Primer Synthesis Primase",
+    "DNA Polymerase Elongation",
+    "Okazaki Fragments Ligation"
+  ],
+  "81f0a0e71cdbfdf1": [
+    "Transcription Initiation",
+    "RNA Elongation Process",
+    "Transcription Termination",
+    "RNA Polymerase Enzyme",
+    "Promoter DNA Sequences"
   ]
 }

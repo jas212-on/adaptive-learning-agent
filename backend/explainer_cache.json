@@ -1,0 +1,134 @@
+{
+  "key-molecules-of-life:dna-structure": {
+    "overview": "DNA, or Deoxyribonucleic Acid, is the fundamental genetic material in all living organisms. Its iconic double helix structure allows it to store and transmit hereditary information with high stability and fidelity. Understanding its precise arrangement of components is crucial for comprehending how genetic information is encoded and utilized.",
+    "prerequisites": [
+      "Basic cell structure (nucleus, cytoplasm)",
+      "Concept of monomers and polymers",
+      "Understanding of chemical bonds (covalent, hydrogen)",
+      "Basic knowledge of organic molecules (sugars, phosphates)",
+      "Concept of information storage in biological systems"
+    ],
+    "keyIdeas": [
+      "DNA exists as a double helix, resembling a twisted ladder.",
+      "The basic building block is a nucleotide, consisting of a deoxyribose sugar, a phosphate group, and a nitrogenous base.",
+      "There are four nitrogenous bases: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).",
+      "Specific base pairing occurs: A always pairs with T (via two hydrogen bonds), and G always pairs with C (via three hydrogen bonds).",
+      "The 'sides' of the ladder are alternating sugar and phosphate groups, forming a strong sugar-phosphate backbone linked by phosphodiester bonds.",
+      "The two strands of the double helix are antiparallel, meaning they run in opposite 5' to 3' directions.",
+      "The sequence of nitrogenous bases along a strand encodes genetic information."
+    ],
+    "pitfalls": [
+      "Confusing DNA's structure or components with that of RNA (e.g., deoxyribose vs. ribose sugar, Thymine vs. Uracil).",
+      "Incorrectly remembering the base pairing rules (e.g., A pairing with G, or T with C).",
+      "Misunderstanding the difference between the strong covalent bonds in the backbone and the weaker hydrogen bonds between bases.",
+      "Forgetting that DNA strands are antiparallel and the implications of this orientation.",
+      "Not recognizing that a nucleotide consists of all three components: sugar, phosphate, and base.",
+      "Overlooking the significance of the major and minor grooves for protein binding."
+    ],
+    "sections": [
+      {
+        "title": "Prerequisites",
+        "bullets": [
+          "Basic cell structure (nucleus, cytoplasm)",
+          "Concept of monomers and polymers",
+          "Understanding of chemical bonds (covalent, hydrogen)",
+          "Basic knowledge of organic molecules (sugars, phosphates)",
+          "Concept of information storage in biological systems"
+        ]
+      },
+      {
+        "title": "Key Ideas",
+        "bullets": [
+          "DNA exists as a double helix, resembling a twisted ladder.",
+          "The basic building block is a nucleotide, consisting of a deoxyribose sugar, a phosphate group, and a nitrogenous base.",
+          "There are four nitrogenous bases: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).",
+          "Specific base pairing occurs: A always pairs with T (via two hydrogen bonds), and G always pairs with C (via three hydrogen bonds).",
+          "The 'sides' of the ladder are alternating sugar and phosphate groups, forming a strong sugar-phosphate backbone linked by phosphodiester bonds.",
+          "The two strands of the double helix are antiparallel, meaning they run in opposite 5' to 3' directions.",
+          "The sequence of nitrogenous bases along a strand encodes genetic information."
+        ]
+      },
+      {
+        "title": "Pitfalls",
+        "bullets": [
+          "Confusing DNA's structure or components with that of RNA (e.g., deoxyribose vs. ribose sugar, Thymine vs. Uracil).",
+          "Incorrectly remembering the base pairing rules (e.g., A pairing with G, or T with C).",
+          "Misunderstanding the difference between the strong covalent bonds in the backbone and the weaker hydrogen bonds between bases.",
+          "Forgetting that DNA strands are antiparallel and the implications of this orientation.",
+          "Not recognizing that a nucleotide consists of all three components: sugar, phosphate, and base.",
+          "Overlooking the significance of the major and minor grooves for protein binding."
+        ]
+      }
+    ],
+    "generatedAt": "2026-01-17T20:59:34.516188+00:00"
+  },
+  "key-molecules-of-life:proteins": {
+    "overview": "Proteins are highly diverse macromolecules essential for virtually every cellular process. They are polymers built from amino acid monomers, linked together by peptide bonds to form polypeptide chains. The unique sequence and three-dimensional folding of these chains determine a protein's specific function, ranging from structural support to enzymatic catalysis and immune defense.",
+    "prerequisites": [
+      "Basic understanding of atoms and molecules (C, H, O, N)",
+      "Concept of monomers and polymers",
+      "Knowledge of covalent bonds",
+      "Introduction to biological macromolecules",
+      "Basic understanding of cells and their components",
+      "Concept of pH and its impact on biological systems",
+      "General idea of genetic information (DNA/RNA) encoding instructions"
+    ],
+    "keyIdeas": [
+      "Proteins are polymers of amino acids, linked by peptide bonds.",
+      "There are 20 common amino acids, each with a unique 'R-group' determining its properties.",
+      "Proteins have four levels of structure: primary (amino acid sequence), secondary (alpha-helices, beta-sheets), tertiary (3D fold), and quaternary (multiple polypeptide chains).",
+      "A protein's specific three-dimensional shape is crucial for its function.",
+      "Proteins perform diverse roles, including catalysis (enzymes), structural support, transport, signaling, and immunity.",
+      "Denaturation is the loss of a protein's 3D structure (and thus function) due to changes in temperature, pH, or chemical environment.",
+      "The genetic code in DNA ultimately dictates the primary sequence of amino acids in a protein."
+    ],
+    "pitfalls": [
+      "Confusing the primary amino acid sequence directly with function, rather than through its role in determining structure.",
+      "Assuming all proteins have a quaternary structure.",
+      "Underestimating the critical role of the R-group in amino acid diversity and protein folding.",
+      "Believing that denaturation is always irreversible.",
+      "Thinking that all proteins are enzymes.",
+      "Not distinguishing between the different types of bonds (peptide vs. hydrogen vs. disulfide) involved in protein structure.",
+      "Overlooking the importance of the cellular environment (e.g., pH, temperature) in maintaining protein structure and function."
+    ],
+    "sections": [
+      {
+        "title": "Prerequisites",
+        "bullets": [
+          "Basic understanding of atoms and molecules (C, H, O, N)",
+          "Concept of monomers and polymers",
+          "Knowledge of covalent bonds",
+          "Introduction to biological macromolecules",
+          "Basic understanding of cells and their components",
+          "Concept of pH and its impact on biological systems",
+          "General idea of genetic information (DNA/RNA) encoding instructions"
+        ]
+      },
+      {
+        "title": "Key Ideas",
+        "bullets": [
+          "Proteins are polymers of amino acids, linked by peptide bonds.",
+          "There are 20 common amino acids, each with a unique 'R-group' determining its properties.",
+          "Proteins have four levels of structure: primary (amino acid sequence), secondary (alpha-helices, beta-sheets), tertiary (3D fold), and quaternary (multiple polypeptide chains).",
+          "A protein's specific three-dimensional shape is crucial for its function.",
+          "Proteins perform diverse roles, including catalysis (enzymes), structural support, transport, signaling, and immunity.",
+          "Denaturation is the loss of a protein's 3D structure (and thus function) due to changes in temperature, pH, or chemical environment.",
+          "The genetic code in DNA ultimately dictates the primary sequence of amino acids in a protein."
+        ]
+      },
+      {
+        "title": "Pitfalls",
+        "bullets": [
+          "Confusing the primary amino acid sequence directly with function, rather than through its role in determining structure.",
+          "Assuming all proteins have a quaternary structure.",
+          "Underestimating the critical role of the R-group in amino acid diversity and protein folding.",
+          "Believing that denaturation is always irreversible.",
+          "Thinking that all proteins are enzymes.",
+          "Not distinguishing between the different types of bonds (peptide vs. hydrogen vs. disulfide) involved in protein structure.",
+          "Overlooking the importance of the cellular environment (e.g., pH, temperature) in maintaining protein structure and function."
+        ]
+      }
+    ],
+    "generatedAt": "2026-01-17T21:01:04.015004+00:00"
+  }
+}

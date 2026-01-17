@@ -14,7 +14,7 @@ import {
 const steps = [
   { to: 'explainer', label: 'Explainer', icon: BookOpen, key: 'explainer' },
   { to: 'resources', label: 'Resources', icon: Compass, key: 'resources' },
-  { to: 'questions', label: 'Questions', icon: ListChecks, key: 'questions' },
+  { to: 'questions', label: 'Questions (optional)', icon: ListChecks, key: 'questions' },
   { to: 'quiz', label: 'Quiz', icon: HelpCircle, key: 'quiz' },
 ]
 
@@ -38,12 +38,16 @@ export default function RoadmapModule() {
     return match?.key || 'explainer'
   }, [location.pathname])
 
-  function toggleComplete(stepKey) {
+  function setStepComplete(stepKey, value = true) {
     const next = { ...progress }
     const current = ensureModule(next, subtopicId)
-    next[subtopicId] = { ...current, [stepKey]: !current[stepKey] }
+    next[subtopicId] = { ...current, [stepKey]: !!value }
     setRoadmapProgress(topic.id, next)
     setProgress(next)
+  }
+
+  function toggleComplete(stepKey) {
+    setStepComplete(stepKey, !moduleState?.[stepKey])
   }
 
   function resetModule() {
@@ -106,7 +110,7 @@ export default function RoadmapModule() {
         ))}
       </div>
 
-      <Outlet context={{ topic, subtopicId }} />
+      <Outlet context={{ topic, subtopicId, setStepComplete }} />
     </div>
   )
 }

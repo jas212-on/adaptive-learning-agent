@@ -179,26 +179,42 @@ export async function getTopic(topicId) {
   }
 }
 
-export async function explainTopic(topicId) {
-  await sleep(700)
-  return {
-    topicId,
-    overview:
-      'A structured explainer that goes beyond what was detected on-screen. It covers prerequisites, mental models, and common pitfalls.',
-    sections: [
-      {
-        title: 'Prerequisites',
-        bullets: ['Core concepts', 'Common terminology', 'Typical use-cases'],
-      },
-      {
-        title: 'Key Ideas',
-        bullets: ['What it is', 'Why it matters', 'How to practice effectively'],
-      },
-      {
-        title: 'Pitfalls',
-        bullets: ['Misconceptions', 'Edge cases', 'How to debug mistakes'],
-      },
-    ],
+export async function explainTopic(topicId, opts = {}) {
+  const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
+  const force = !!opts?.force
+
+  const qs = new URLSearchParams()
+  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  if (force) qs.set('force', 'true')
+
+  try {
+    if (!subtopicId) throw new Error('subtopicId is required')
+    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/explainer?${qs.toString()}`)
+  } catch (e) {
+    await sleep(700)
+    return {
+      topicId,
+      subtopicId: subtopicId || 'subtopic',
+      overview:
+        'A structured explainer that goes beyond what was detected on-screen. It covers prerequisites, mental models, and common pitfalls.',
+      prerequisites: ['Core concepts', 'Common terminology', 'Typical use-cases'],
+      keyIdeas: ['What it is', 'Why it matters', 'How to practice effectively'],
+      pitfalls: ['Misconceptions', 'Edge cases', 'How to debug mistakes'],
+      sections: [
+        {
+          title: 'Prerequisites',
+          bullets: ['Core concepts', 'Common terminology', 'Typical use-cases'],
+        },
+        {
+          title: 'Key Ideas',
+          bullets: ['What it is', 'Why it matters', 'How to practice effectively'],
+        },
+        {
+          title: 'Pitfalls',
+          bullets: ['Misconceptions', 'Edge cases', 'How to debug mistakes'],
+        },
+      ],
+    }
   }
 }
 
@@ -231,43 +247,95 @@ export async function suggestResources(topicId, opts = {}) {
   }
 }
 
-export async function generateQuestions(topicId) {
-  await sleep(850)
-  return {
-    topicId,
-    questions: [
-      {
-        id: uid('q'),
-        type: 'mcq',
-        prompt: 'Which option best describes the concept?',
-        choices: ['A', 'B', 'C', 'D'],
-        answerIndex: 1,
-        skill: 'conceptual',
-      },
-      {
-        id: uid('q'),
-        type: 'mcq',
-        prompt: 'Pick the correct next step in a workflow.',
-        choices: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-        answerIndex: 2,
-        skill: 'procedural',
-      },
-    ],
+export async function generateQuestions(topicId, opts = {}) {
+  const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
+  const nQuestions = Number.isFinite(opts?.nQuestions) ? opts.nQuestions : 5
+  const force = Boolean(opts?.force)
+
+  // If we don't have a subtopic, keep the old mock behavior (used by other pages).
+  if (!subtopicId) {
+    await sleep(850)
+    return {
+      topicId,
+      questions: [
+        {
+          id: uid('q'),
+          type: 'mcq',
+          prompt: 'Which option best describes the concept?',
+          choices: ['A', 'B', 'C', 'D'],
+          answerIndex: 1,
+          skill: 'conceptual',
+        },
+        {
+          id: uid('q'),
+          type: 'mcq',
+          prompt: 'Pick the correct next step in a workflow.',
+          choices: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+          answerIndex: 2,
+          skill: 'procedural',
+        },
+      ],
+    }
+  }
+
+  const qs = new URLSearchParams()
+  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  qs.set('n_questions', String(nQuestions))
+  if (force) qs.set('force', 'true')
+
+  try {
+    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz?${qs.toString()}`)
+  } catch (e) {
+    // If backend isn't running yet, keep the UI usable with a small mock.
+    await sleep(350)
+    return {
+      topicId,
+      subtopicId,
+      questions: [
+        {
+          question: 'Which option best describes the concept?',
+          options: ['A', 'B', 'C', 'D'],
+        },
+        {
+          question: 'Pick the correct next step in a workflow.',
+          options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+        },
+      ],
+    }
   }
 }
 
+export async function submitQuizAttempt(topicId, { subtopicId, answers, clientTime } = {}) {
+  if (!subtopicId) throw new Error('subtopicId is required')
+  if (!Array.isArray(answers) || !answers.length) throw new Error('answers is required')
+
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz/submit`, {
+    method: 'POST',
+    body: {
+      subtopicId,
+      answers,
+      clientTime: clientTime || new Date().toISOString(),
+    },
+  })
+}
+
 export async function getAnalytics() {
-  await sleep(600)
-  return {
-    streakDays: 7,
-    timeSpentMinutes: 320,
-    topicsLearned: 5,
-    avgScore: 76,
-    byTopic: [
-      { id: 'react-hooks', title: 'React Hooks', progress: 0.55, score: 72, minutes: 90 },
-      { id: 'sql-joins', title: 'SQL Joins', progress: 0.35, score: 64, minutes: 55 },
-      { id: 'os-scheduling', title: 'CPU Scheduling', progress: 0.2, score: 58, minutes: 35 },
-    ],
+  try {
+    return await apiFetch('/analytics')
+  } catch (e) {
+    // If backend isn't running yet, keep the UI usable with a small mock.
+    await sleep(600)
+    return {
+      streakDays: 7,
+      timeSpentMinutes: 320,
+      topicsLearned: 5,
+      avgScore: 76,
+      byTopic: [
+        { id: 'react-hooks', title: 'React Hooks', progress: 0.55, score: 72, minutes: 90 },
+        { id: 'sql-joins', title: 'SQL Joins', progress: 0.35, score: 64, minutes: 55 },
+        { id: 'os-scheduling', title: 'CPU Scheduling', progress: 0.2, score: 58, minutes: 35 },
+      ],
+    }
   }
 }
 

@@ -12,26 +12,31 @@ function computeLevel(scorePct) {
 }
 
 export default function Quiz() {
-  const { topic } = useOutletContext()
+  const { topic, subtopicId, setStepComplete } = useOutletContext()
 
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState(null)
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [submitResult, setSubmitResult] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     setData(null)
     setAnswers({})
     setSubmitted(false)
+    setSubmitResult(null)
     setError(null)
-  }, [topic.id])
+  }, [topic.id, subtopicId])
 
   async function loadQuiz() {
     setLoading(true)
     setError(null)
+    setAnswers({})
+    setSubmitted(false)
+    setSubmitResult(null)
     try {
-      const res = await api.generateQuestions(topic.id)
+      const res = await api.generateQuestions(topic.id, { subtopicId, nQuestions: 5 })
       setData(res)
     } catch (err) {
       setError(err?.message || 'Failed to load quiz')
@@ -40,38 +45,49 @@ export default function Quiz() {
     }
   }
 
-  const result = useMemo(() => {
-    if (!submitted || !data) return null
-    const qs = data.questions || []
-    const total = qs.length
-    const wrongSkills = []
-    let correct = 0
-    for (const q of qs) {
-      const chosen = answers[q.id]
-      if (chosen === q.answerIndex) correct += 1
-      else wrongSkills.push(q.skill)
-    }
-    const pct = total ? Math.round((correct / total) * 100) : 0
-    const weakAreas = Array.from(
-      wrongSkills.reduce((acc, s) => acc.set(s, (acc.get(s) || 0) + 1), new Map()),
-    )
-      .sort((a, b) => b[1] - a[1])
-      .map(([skill]) => skill)
+  async function submitAttempt() {
+    if (!data?.questions?.length) return
+    setLoading(true)
+    setError(null)
+    try {
+      const total = data.questions.length
+      const orderedAnswers = Array.from({ length: total }, (_, i) => answers[i])
+      const res = await api.submitQuizAttempt(topic.id, {
+        subtopicId,
+        answers: orderedAnswers,
+        clientTime: new Date().toISOString(),
+      })
+      setSubmitResult(res)
+      setSubmitted(true)
 
+      const correct = res?.correctCount ?? 0
+      const passed = correct >= 4
+      setStepComplete?.('quiz', passed)
+    } catch (err) {
+      setError(err?.message || 'Failed to submit quiz')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const result = useMemo(() => {
+    if (!submitted || !submitResult) return null
+    const total = submitResult.total || 0
+    const correct = submitResult.correctCount || 0
+    const pct = submitResult.scorePct || 0
     return {
       total,
       correct,
       pct,
       inferredLevel: computeLevel(pct),
-      weakAreas,
     }
-  }, [submitted, data, answers])
+  }, [submitted, submitResult])
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-fg-muted">
-          Take a quick quiz; we’ll infer knowledge level and weak areas.
+          Take a quick quiz for this subtopic; we’ll infer knowledge level and weak areas.
         </div>
         <Button onClick={loadQuiz} disabled={loading}>
           {loading ? <Spinner /> : <CheckCircle2 size={18} />}
@@ -84,13 +100,13 @@ export default function Quiz() {
       {data ? (
         <div className="space-y-4">
           {data.questions.map((q, idx) => (
-            <div key={q.id} className="rounded-xl border bg-card p-4">
+            <div key={idx} className="rounded-xl border bg-card p-4">
               <div className="text-sm font-semibold">
-                Q{idx + 1}. <span className="font-normal">{q.prompt}</span>
+                Q{idx + 1}. <span className="font-normal">{q.question}</span>
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {q.choices.map((c, i) => {
-                  const checked = answers[q.id] === i
+                {q.options.map((c, i) => {
+                  const checked = answers[idx] === i
                   return (
                     <label
                       key={c}
@@ -100,9 +116,9 @@ export default function Quiz() {
                     >
                       <input
                         type="radio"
-                        name={q.id}
+                        name={`q_${idx}`}
                         checked={checked}
-                        onChange={() => setAnswers((a) => ({ ...a, [q.id]: i }))}
+                        onChange={() => setAnswers((a) => ({ ...a, [idx]: i }))}
                       />
                       <span>
                         {String.fromCharCode(65 + i)}. {c}
@@ -116,8 +132,12 @@ export default function Quiz() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              onClick={() => setSubmitted(true)}
-              disabled={submitted || Object.keys(answers).length < (data.questions?.length || 0)}
+              onClick={submitAttempt}
+              disabled={
+                submitted ||
+                Object.keys(answers).length < (data.questions?.length || 0) ||
+                Object.values(answers).some((v) => v === undefined || v === null)
+              }
             >
               Submit
             </Button>
@@ -126,6 +146,7 @@ export default function Quiz() {
               onClick={() => {
                 setAnswers({})
                 setSubmitted(false)
+                setSubmitResult(null)
               }}
             >
               Reset
@@ -151,12 +172,6 @@ export default function Quiz() {
                 <div>
                   <div className="text-xs text-fg-muted">Inferred level</div>
                   <div className="text-lg font-semibold">{result.inferredLevel}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-fg-muted">Weak areas</div>
-                  <div className="text-sm font-medium">
-                    {result.weakAreas.length ? result.weakAreas.join(', ') : 'None detected'}
-                  </div>
                 </div>
               </div>
             </div>

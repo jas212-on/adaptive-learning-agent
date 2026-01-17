@@ -48,7 +48,7 @@ export default function RoadmapIndex() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-fg-muted">
-          Subtopics are generated from what was detected in your session. Each subtopic contains explainer, resources, questions, and a quiz.
+          Subtopics are generated from what was detected in your session. Progress is tracked from explainer, resources, and quiz (questions are optional).
         </div>
         <Badge className="bg-bg-muted text-fg">Overall: {Math.round(overall * 100)}%</Badge>
       </div>

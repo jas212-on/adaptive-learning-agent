@@ -6,7 +6,7 @@ import { Spinner } from '../../../components/ui/Spinner'
 import * as api from '../../../services/api'
 
 export default function Explainer() {
-  const { topic } = useOutletContext()
+  const { topic, subtopicId, setStepComplete } = useOutletContext()
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -14,14 +14,15 @@ export default function Explainer() {
   useEffect(() => {
     setData(null)
     setError(null)
-  }, [topic.id])
+  }, [topic.id, subtopicId])
 
   async function run() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.explainTopic(topic.id)
+      const res = await api.explainTopic(topic.id, { subtopicId })
       setData(res)
+      setStepComplete?.('explainer', true)
     } catch (err) {
       setError(err?.message || 'Failed to generate explainer')
     } finally {
@@ -51,20 +52,36 @@ export default function Explainer() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
-            {data.sections.map((s) => (
-              <div key={s.title} className="rounded-xl border bg-card p-4">
-                <div className="text-sm font-semibold">{s.title}</div>
-                <ul className="mt-2 space-y-1 text-sm text-fg-muted">
-                  {s.bullets.map((b) => (
-                    <li key={b}>• {b}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold">Prerequisites</div>
+              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+                {(data.prerequisites || []).map((b) => (
+                  <li key={b}>• {b}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold">Key ideas</div>
+              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+                {(data.keyIdeas || []).map((b) => (
+                  <li key={b}>• {b}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold">Pitfalls</div>
+              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+                {(data.pitfalls || []).map((b) => (
+                  <li key={b}>• {b}</li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          
         </div>
       ) : (
-        <div className="text-sm text-fg-muted">Click “Generate explainer” to load dummy output.</div>
+        <div className="text-sm text-fg-muted">Click “Generate explainer” to fetch the explainer via Gemini.</div>
       )}
     </div>
   )

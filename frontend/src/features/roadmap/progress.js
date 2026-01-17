@@ -25,7 +25,10 @@ export function ensureModule(progress, moduleId) {
 }
 
 export function moduleCompletion(moduleState) {
-  const keys = ['explainer', 'resources', 'questions', 'quiz']
+  // Progress is intentionally based on 3 core actions:
+  // explainer (+33%), resources (+33%), quiz pass (+34%).
+  // "questions" is treated as optional and does not affect completion.
+  const keys = ['explainer', 'resources', 'quiz']
   const done = keys.filter((k) => !!moduleState?.[k]).length
   return done / keys.length
 }

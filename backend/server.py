@@ -3,6 +3,7 @@ import re
 import hashlib
 import json
 import threading
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
@@ -15,6 +16,18 @@ from typing import Any
 
 from urllib.parse import urlparse
 from graph.builder import build_concept_graph, graph_to_legacy_format
+
+
+def _quiz_module():
+    """Import quiz generator with support for different working directories."""
+    try:
+        import quizz  # type: ignore
+
+        return quizz
+    except ModuleNotFoundError:
+        from backend import quizz  # type: ignore
+
+        return quizz
 
 
 class AskRequest(BaseModel):
@@ -116,6 +129,295 @@ class ResourcesResponse(BaseModel):
     topicId: str | None = None
     subtopicId: str | None = None
     resources: list[ResourceItem]
+
+
+class QuizSubmitRequest(BaseModel):
+    subtopicId: str
+    answers: list[int]
+    clientTime: str | None = None
+
+
+class ExplainerSection(BaseModel):
+    title: str
+    bullets: list[str] = []
+
+
+class ExplainerResponse(BaseModel):
+    topicId: str
+    subtopicId: str
+    overview: str
+    prerequisites: list[str] = []
+    keyIdeas: list[str] = []
+    pitfalls: list[str] = []
+    sections: list[ExplainerSection] = []
+    generatedAt: str | None = None
+
+
+_quiz_file_lock = threading.Lock()
+
+_explainer_lock = threading.Lock()
+
+
+def _explainer_cache_path() -> Path:
+    return _backend_dir() / "explainer_cache.json"
+
+
+def _load_explainer_cache() -> dict[str, Any]:
+    path = _explainer_cache_path()
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_explainer_cache(cache: dict[str, Any]) -> None:
+    path = _explainer_cache_path()
+    try:
+        path.write_text(json.dumps(cache, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _extract_json_object(text: str) -> dict[str, Any] | None:
+    if not isinstance(text, str) or not text.strip():
+        return None
+    s = text.strip()
+    try:
+        obj = json.loads(s)
+        return obj if isinstance(obj, dict) else None
+    except Exception:
+        pass
+
+    # Try to pull the first {...} block.
+    start = s.find("{")
+    end = s.rfind("}")
+    if start >= 0 and end > start:
+        chunk = s[start : end + 1]
+        try:
+            obj = json.loads(chunk)
+            return obj if isinstance(obj, dict) else None
+        except Exception:
+            return None
+    return None
+
+
+def _clean_str_list(x: Any, max_items: int = 10) -> list[str]:
+    if not isinstance(x, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in x:
+        if not isinstance(item, str):
+            continue
+        s = re.sub(r"\s+", " ", item).strip(" \t\r\n-•*")
+        if not s:
+            continue
+        key = s.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(s)
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def _build_explainer(topic_title: str, subtopic_title: str) -> dict[str, Any]:
+    prompt = (
+        "You are a helpful tutor in an adaptive learning app.\n"
+        "Generate a concise explainer for the given subtopic.\n"
+        "Return STRICT JSON only (no markdown, no prose outside JSON).\n\n"
+        "JSON schema:\n"
+        "{\n"
+        '  "overview": "string (2-4 sentences)",\n'
+        '  "prerequisites": ["..."],\n'
+        '  "keyIdeas": ["..."],\n'
+        '  "pitfalls": ["..."],\n'
+        '  "sections": [\n'
+        '    {"title": "string", "bullets": ["..."]}\n'
+        "  ]\n"
+        "}\n\n"
+        "Guidelines:\n"
+        "- prerequisites: 4-8 bullets\n"
+        "- keyIdeas: 4-8 bullets\n"
+        "- pitfalls: 4-8 bullets\n"
+        "- sections: exactly 3 items titled Prerequisites, Key Ideas, Pitfalls with matching bullets\n\n"
+        f"Topic: {topic_title}\n"
+        f"Subtopic: {subtopic_title}\n"
+    )
+
+    raw = ask_gemini(prompt)
+    obj = _extract_json_object(raw)
+    if not obj:
+        # Fallback: treat entire response as overview
+        return {
+            "overview": (raw or "").strip() or "(No explainer returned)",
+            "prerequisites": [],
+            "keyIdeas": [],
+            "pitfalls": [],
+            "sections": [],
+        }
+
+    prerequisites = _clean_str_list(obj.get("prerequisites"), 12)
+    key_ideas = _clean_str_list(obj.get("keyIdeas"), 12)
+    pitfalls = _clean_str_list(obj.get("pitfalls"), 12)
+    overview = obj.get("overview")
+    if not isinstance(overview, str) or not overview.strip():
+        overview = f"An explainer for {subtopic_title}."
+    overview = re.sub(r"\s+", " ", overview).strip()
+
+    # Normalize sections
+    sections_in = obj.get("sections")
+    sections: list[dict[str, Any]] = []
+    if isinstance(sections_in, list):
+        for s in sections_in:
+            if not isinstance(s, dict):
+                continue
+            title = s.get("title")
+            if not isinstance(title, str) or not title.strip():
+                continue
+            bullets = _clean_str_list(s.get("bullets"), 12)
+            sections.append({"title": title.strip(), "bullets": bullets})
+            if len(sections) >= 6:
+                break
+
+    # Ensure the three requested sections exist.
+    if not sections:
+        sections = [
+            {"title": "Prerequisites", "bullets": prerequisites},
+            {"title": "Key Ideas", "bullets": key_ideas},
+            {"title": "Pitfalls", "bullets": pitfalls},
+        ]
+
+    return {
+        "overview": overview,
+        "prerequisites": prerequisites,
+        "keyIdeas": key_ideas,
+        "pitfalls": pitfalls,
+        "sections": sections,
+    }
+
+_bkt_state_lock = threading.Lock()
+
+
+def _bkt_state_path() -> Path:
+    return _backend_dir() / "bkt_state.json"
+
+
+def _load_bkt_state() -> dict[str, Any]:
+    path = _bkt_state_path()
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_bkt_state(state: dict[str, Any]) -> None:
+    path = _bkt_state_path()
+    try:
+        path.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        # Best-effort; analytics can still run with in-memory values.
+        pass
+
+
+def _update_mastery_remaining_part(prev_mastery: float, score_pct: int) -> float:
+    """Update mastery using the user's requested "remaining part" rule.
+
+    If score is s in [0,1] and current mastery is p, new mastery is:
+      p' = 1 - (1 - p) * (1 - s)
+    Example: p=0, s=0.8 => 0.8; then again s=0.8 => 0.96.
+    This is a monotonic, BKT-inspired accumulation model.
+    """
+
+    try:
+        p = float(prev_mastery)
+    except Exception:
+        p = 0.0
+    p = max(0.0, min(1.0, p))
+
+    try:
+        s = float(score_pct) / 100.0
+    except Exception:
+        s = 0.0
+    s = max(0.0, min(1.0, s))
+
+    return 1.0 - (1.0 - p) * (1.0 - s)
+
+
+def _bkt_update_on_quiz_submit(
+    *, topic_id: str, subtopic_id: str, score_pct: int, correct_count: int, total: int, submitted_at: str
+) -> float:
+    with _bkt_state_lock:
+        state = _load_bkt_state()
+        topic_state = state.get(topic_id)
+        if not isinstance(topic_state, dict):
+            topic_state = {}
+
+        skills = topic_state.get("subtopics")
+        if not isinstance(skills, dict):
+            skills = {}
+
+        skill = skills.get(subtopic_id)
+        if not isinstance(skill, dict):
+            skill = {}
+
+        prev_mastery = skill.get("mastery")
+        mastery = _update_mastery_remaining_part(prev_mastery, score_pct)
+
+        attempt_count = skill.get("attempts")
+        try:
+            attempt_count = int(attempt_count)
+        except Exception:
+            attempt_count = 0
+        attempt_count += 1
+
+        skill.update(
+            {
+                "mastery": mastery,
+                "attempts": attempt_count,
+                "lastScorePct": int(score_pct),
+                "lastCorrectCount": int(correct_count),
+                "lastTotal": int(total),
+                "updatedAt": submitted_at,
+            }
+        )
+        skills[subtopic_id] = skill
+        topic_state["subtopics"] = skills
+        topic_state["updatedAt"] = submitted_at
+        state[topic_id] = topic_state
+        _save_bkt_state(state)
+        return mastery
+
+
+def _quiz_cache_path_candidates(topic_id: str, topic_title: str, subtopic_id: str) -> list[Path]:
+    root = _backend_dir() / "quiz_cache"
+    candidates: list[Path] = []
+    candidates.append(root / topic_id / f"{subtopic_id}.json")
+    candidates.append(root / _slugify(topic_title) / f"{subtopic_id}.json")
+    # De-dupe while preserving order
+    out: list[Path] = []
+    seen: set[str] = set()
+    for p in candidates:
+        s = str(p)
+        if s in seen:
+            continue
+        seen.add(s)
+        out.append(p)
+    return out
+
+
+def _load_quiz_json(path: Path) -> dict[str, Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Invalid quiz JSON")
+    return data
 
 
 def _domain_from_url(url: str) -> str:
@@ -902,6 +1204,256 @@ def detector_topic_resources(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/detector/topics/{topic_id}/quiz")
+def detector_topic_quiz(
+    topic_id: str,
+    subtopic_id: str | None = None,
+    subtopic_title: str | None = None,
+    n_questions: int = Query(5, ge=1, le=10),
+    force: bool = False,
+):
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    topic = next((t for t in topics if t.id == topic_id), None)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    chosen_subtopic: str | None = None
+    if subtopic_title:
+        chosen_subtopic = str(subtopic_title).strip()
+    elif subtopic_id:
+        for st in topic.subtopics or []:
+            if _slugify(st) == subtopic_id:
+                chosen_subtopic = st
+                break
+
+    if not chosen_subtopic:
+        raise HTTPException(status_code=400, detail="subtopic_id or subtopic_title is required")
+
+    try:
+        quizz = _quiz_module()
+        payload = quizz.generate_quiz(
+            topic_title=topic.title,
+            subtopic_title=chosen_subtopic,
+            n_questions=n_questions,
+            force=force,
+        )
+
+        # Ensure ids match the route/query ids we use on the frontend.
+        payload["topicId"] = topic_id
+        payload["subtopicId"] = _slugify(chosen_subtopic)
+
+        # Do not leak correct answers to the client.
+        qs = payload.get("questions")
+        if isinstance(qs, list):
+            payload["questions"] = [
+                {"question": q.get("question"), "options": q.get("options")}
+                for q in qs
+                if isinstance(q, dict)
+            ]
+
+        # Remove internal fields that may contain correct answers.
+        payload.pop("sets", None)
+        payload.pop("activeSetId", None)
+        return payload
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/detector/topics/{topic_id}/explainer", response_model=ExplainerResponse)
+def detector_topic_explainer(
+    topic_id: str,
+    subtopic_id: str | None = None,
+    subtopic_title: str | None = None,
+    force: bool = False,
+):
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    topic = next((t for t in topics if t.id == topic_id), None)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    chosen_subtopic: str | None = None
+    if subtopic_title:
+        chosen_subtopic = str(subtopic_title).strip()
+    elif subtopic_id:
+        for st in topic.subtopics or []:
+            if _slugify(st) == subtopic_id:
+                chosen_subtopic = st
+                break
+
+    if not chosen_subtopic:
+        raise HTTPException(status_code=400, detail="subtopic_id or subtopic_title is required")
+
+    sid = _slugify(chosen_subtopic)
+    cache_key = f"{topic_id}:{sid}"
+
+    with _explainer_lock:
+        cache = _load_explainer_cache()
+        cached = cache.get(cache_key) if isinstance(cache, dict) else None
+        if not force and isinstance(cached, dict) and isinstance(cached.get("overview"), str):
+            return {
+                "topicId": topic_id,
+                "subtopicId": sid,
+                "overview": cached.get("overview") or "",
+                "prerequisites": cached.get("prerequisites") or [],
+                "keyIdeas": cached.get("keyIdeas") or [],
+                "pitfalls": cached.get("pitfalls") or [],
+                "sections": cached.get("sections") or [],
+                "generatedAt": cached.get("generatedAt"),
+            }
+
+    try:
+        built = _build_explainer(topic.title, chosen_subtopic)
+        generated_at = datetime.now(timezone.utc).isoformat()
+        payload = {
+            "topicId": topic_id,
+            "subtopicId": sid,
+            "overview": built.get("overview") or "",
+            "prerequisites": built.get("prerequisites") or [],
+            "keyIdeas": built.get("keyIdeas") or [],
+            "pitfalls": built.get("pitfalls") or [],
+            "sections": built.get("sections") or [],
+            "generatedAt": generated_at,
+        }
+
+        with _explainer_lock:
+            cache = _load_explainer_cache()
+            if not isinstance(cache, dict):
+                cache = {}
+            cache[cache_key] = {
+                "overview": payload["overview"],
+                "prerequisites": payload["prerequisites"],
+                "keyIdeas": payload["keyIdeas"],
+                "pitfalls": payload["pitfalls"],
+                "sections": payload["sections"],
+                "generatedAt": generated_at,
+            }
+            _save_explainer_cache(cache)
+
+        return payload
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/detector/topics/{topic_id}/quiz/submit")
+def detector_topic_quiz_submit(topic_id: str, body: QuizSubmitRequest):
+    subtopic_id = _slugify(body.subtopicId)
+    if not subtopic_id:
+        raise HTTPException(status_code=400, detail="subtopicId is required")
+    if not isinstance(body.answers, list) or not body.answers:
+        raise HTTPException(status_code=400, detail="answers is required")
+
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    topic = next((t for t in topics if t.id == topic_id), None)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    candidates = _quiz_cache_path_candidates(topic_id=topic_id, topic_title=topic.title, subtopic_id=subtopic_id)
+    quiz_path = next((p for p in candidates if p.exists()), None)
+    if quiz_path is None:
+        raise HTTPException(status_code=404, detail="Quiz not found. Load/generate the quiz first.")
+
+    with _quiz_file_lock:
+        try:
+            quiz = _load_quiz_json(quiz_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to read quiz file: {e}")
+
+        # Choose the active set if present; otherwise fall back to top-level questions.
+        questions = None
+        active_set_id = quiz.get("activeSetId") if isinstance(quiz.get("activeSetId"), str) else None
+        sets = quiz.get("sets")
+        active_set = None
+        if isinstance(sets, list) and active_set_id:
+            for s in sets:
+                if isinstance(s, dict) and s.get("setId") == active_set_id:
+                    active_set = s
+                    break
+        if isinstance(active_set, dict) and isinstance(active_set.get("questions"), list):
+            questions = active_set.get("questions")
+        else:
+            questions = quiz.get("questions")
+
+        if not isinstance(questions, list):
+            raise HTTPException(status_code=500, detail="Quiz file missing questions")
+
+        total = min(len(questions), len(body.answers))
+        correct = 0
+        graded_flags: list[bool] = []
+
+        for idx in range(total):
+            q = questions[idx]
+            if not isinstance(q, dict):
+                graded_flags.append(False)
+                continue
+
+            options = q.get("options")
+            correct_answer = q.get("correctAnswer")
+            if not isinstance(options, list) or not isinstance(correct_answer, str):
+                q["isCorrect"] = False
+                graded_flags.append(False)
+                continue
+
+            try:
+                chosen_index = int(body.answers[idx])
+            except Exception:
+                chosen_index = -1
+
+            chosen = options[chosen_index] if 0 <= chosen_index < len(options) else None
+            is_correct = bool(chosen == correct_answer)
+            q["isCorrect"] = is_correct
+            graded_flags.append(is_correct)
+            if is_correct:
+                correct += 1
+
+        submitted_at = datetime.now(timezone.utc).isoformat()
+        score_pct = int(round((correct / total) * 100)) if total else 0
+
+        # Persist: store set-level submittedAt and mirror active questions to top-level questions.
+        if isinstance(active_set, dict):
+            active_set["submittedAt"] = submitted_at
+            active_set["clientTime"] = body.clientTime
+        quiz["questions"] = questions
+        quiz["updatedAt"] = submitted_at
+        quiz.pop("lastAttempt", None)
+        quiz.pop("attempts", None)
+
+        try:
+            quiz_path.write_text(json.dumps(quiz, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to write quiz file: {e}")
+
+    mastery = _bkt_update_on_quiz_submit(
+        topic_id=topic_id,
+        subtopic_id=subtopic_id,
+        score_pct=score_pct,
+        correct_count=correct,
+        total=total,
+        submitted_at=submitted_at,
+    )
+
+    return {
+        "ok": True,
+        "topicId": topic_id,
+        "subtopicId": subtopic_id,
+        "quizPath": str(quiz_path),
+        "submittedAt": submitted_at,
+        "total": total,
+        "correctCount": correct,
+        "scorePct": score_pct,
+        "masteryPct": int(round(mastery * 100)),
+        "graded": graded_flags,
+    }
+
+
 @app.get("/detector/topics/{topic_id}/graph")
 def detector_topic_graph(
     topic_id: str,
@@ -946,5 +1498,73 @@ def detector_topic_graph(
     )
     
     return graph_to_legacy_format(graph)
+
+
+@app.get("/analytics")
+def get_analytics():
+    """Return lightweight analytics driven by quiz mastery.
+
+    Per-topic progress/score is computed from stored mastery values per subtopic.
+    Mastery is updated on each quiz submission using the user's requested
+    "remaining part" accumulation rule.
+    """
+
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+
+    with _bkt_state_lock:
+        bkt_state = _load_bkt_state()
+
+    by_topic: list[dict[str, Any]] = []
+    progress_vals: list[float] = []
+
+    for t in topics:
+        topic_state = bkt_state.get(t.id)
+        if not isinstance(topic_state, dict):
+            topic_state = {}
+        sub_state = topic_state.get("subtopics")
+        if not isinstance(sub_state, dict):
+            sub_state = {}
+
+        subtopics = t.subtopics or []
+        if not subtopics:
+            progress = 0.0
+        else:
+            mastery_list: list[float] = []
+            for st in subtopics:
+                sid = _slugify(st)
+                skill = sub_state.get(sid)
+                mastery = 0.0
+                if isinstance(skill, dict):
+                    try:
+                        mastery = float(skill.get("mastery") or 0.0)
+                    except Exception:
+                        mastery = 0.0
+                mastery_list.append(max(0.0, min(1.0, mastery)))
+            progress = sum(mastery_list) / len(mastery_list) if mastery_list else 0.0
+
+        progress_vals.append(progress)
+        by_topic.append(
+            {
+                "id": t.id,
+                "title": t.title,
+                "progress": progress,
+                # For now, align score to progress (mastery %) so the UI stays simple.
+                "score": int(round(progress * 100)),
+                # Time tracking isn't wired yet; keep shape stable.
+                "minutes": 0,
+            }
+        )
+
+    avg_score = int(round((sum(progress_vals) / len(progress_vals)) * 100)) if progress_vals else 0
+    topics_learned = sum(1 for p in progress_vals if p >= 0.999)
+
+    return {
+        "streakDays": 0,
+        "timeSpentMinutes": 0,
+        "topicsLearned": topics_learned,
+        "avgScore": avg_score,
+        "byTopic": by_topic,
+    }
 
 

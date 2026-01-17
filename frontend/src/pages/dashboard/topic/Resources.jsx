@@ -6,7 +6,7 @@ import { Spinner } from '../../../components/ui/Spinner'
 import * as api from '../../../services/api'
 
 export default function Resources() {
-  const { topic, subtopicId } = useOutletContext()
+  const { topic, subtopicId, setStepComplete } = useOutletContext()
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -22,6 +22,7 @@ export default function Resources() {
     try {
       const res = await api.suggestResources(topic.id, { subtopicId })
       setData(res)
+      setStepComplete?.('resources', true)
     } catch (err) {
       setError(err?.message || 'Failed to load resources')
     } finally {
