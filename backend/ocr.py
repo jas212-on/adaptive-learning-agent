@@ -2,7 +2,6 @@ import os
 import sys
 import time
 from pathlib import Path
-import time
 from collections import defaultdict
 import json
 import pytesseract
@@ -13,7 +12,7 @@ import win32gui
 import requests
 import tkinter as tk
 import threading
-import requests
+from huggingface_hub import InferenceClient
 
 STOP_FILE = Path("stop.flag")
 
@@ -186,9 +185,32 @@ def send_text_to_server(text, title):
     except Exception as e:
         print("[ERROR] Unexpected error:", e)
 
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+def generate_summary(text):
+    if not HF_TOKEN:
+        return None
+
+    # Keep requests reasonably sized for hosted models.
+    text = (text or "").strip()
+    if not text:
+        return None
+
+    client = InferenceClient(
+    provider="hf-inference",
+    api_key=HF_TOKEN,
+    )
+
+    result = client.summarization(
+    text,
+    model="facebook/bart-large-cnn",
+    )
+    print(result)
+    return result
+
 
 API_URL = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-mnli"
-HF_TOKEN = os.getenv("HF_TOKEN")
+
 headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else None
 
 def query(payload):
@@ -218,7 +240,7 @@ def detect_text_classification(text):
         }
     )
 
-    print(output)
+    #print(output)
 
     # HF router can return either:
     # 1) {"labels": [...], "scores": [...]} (common)
@@ -240,6 +262,32 @@ def detect_text_classification(text):
     return True
 
 
+def finalize_window_capture(entries, window_title, captured_text, started_at, ended_at):
+    captured_text = (captured_text or "").strip()
+    if not captured_text:
+        return
+
+    is_educational = True
+    try:
+        is_educational = bool(detect_text_classification(captured_text[:6000]))
+    except Exception as e:
+        print("[WARN] Classification failed:", e)
+        is_educational = True
+
+    summary = send_text_to_server(captured_text, window_title)
+
+    entry = {
+        "window_title": window_title,
+        "started_at": started_at,
+        "ended_at": ended_at,
+        "is_educational": is_educational,
+        "ocr_text": captured_text,
+        "summary": summary
+    }
+    entries.append(entry)
+    write_output(entries)
+
+
 # -------- MAIN --------
 border_drawn = False
 
@@ -247,12 +295,13 @@ try:
     print("[OCR] Starting OCR process...")
     time_spent = defaultdict(int)
 
-    prev_window = None
+    prev_title = None
     prev_time = time.time()
 
-    start_time = time.time()
-
-    entries=[]
+    entries = []
+    buffer_title = None
+    buffer_started_at = None
+    buffer_text = ""
 
     while not should_stop():
         
@@ -263,13 +312,32 @@ try:
 
         title = get_active_window_title()
         current_time = time.time()
-        if prev_window is not None:
-            elapsed = int(current_time - prev_time)
-            time_spent[prev_window] += elapsed
 
-        prev_window = title
+        if prev_title is not None:
+            elapsed = int(current_time - prev_time)
+            time_spent[prev_title] += elapsed
+
+        # If window changed, flush the previous window's accumulated OCR text.
+        if prev_title is not None and title != prev_title:
+            if should_capture(prev_title):
+                finalize_window_capture(
+                    entries,
+                    window_title=buffer_title or prev_title,
+                    captured_text=buffer_text,
+                    started_at=buffer_started_at,
+                    ended_at=current_time,
+                )
+            buffer_text = ""
+            buffer_title = title
+            buffer_started_at = current_time
+
+        # Initialize buffer on first iteration.
+        if prev_title is None:
+            buffer_title = title
+            buffer_started_at = current_time
+
+        prev_title = title
         prev_time = current_time
-        
 
         if should_capture(title):
             if not border_drawn:
@@ -280,23 +348,25 @@ try:
             img = capture_active_window()     
             img = smart_content_crop(img)
             save_image(img, prefix="cropped")
-            text = ocr_image(img)
-            isEducational = detect_text_classification(text)
-            print(isEducational)
-            response = send_text_to_server(text, title)
-            data = {
-                    "title": title,
-                    "ocr_text": text,
-                    "server_response": response
-                }
-            entries.append(data)
-            # Write continuously so the UI updates while OCR is running.
-            write_output(entries)
-            print(data)
+            extracted = ocr_image(img)
+            if extracted:
+                # While the window stays the same, keep accumulating text.
+                buffer_text += ("\n" if buffer_text else "") + extracted
 
             del img
         else:
             print("[SKIP] OCR skipped:", title)
+
+    # Flush the last active window before exiting.
+    end_time = time.time()
+    if buffer_title and should_capture(buffer_title):
+        finalize_window_capture(
+            entries,
+            window_title=buffer_title,
+            captured_text=buffer_text,
+            started_at=buffer_started_at,
+            ended_at=end_time,
+        )
 
     for window, seconds in time_spent.items():
         data = {
