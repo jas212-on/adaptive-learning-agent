@@ -58,6 +58,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Include timetable router
+from timetable.routes import router as timetable_router
+app.include_router(timetable_router)
+
 
 def _backend_dir() -> Path:
     return Path(__file__).resolve().parent

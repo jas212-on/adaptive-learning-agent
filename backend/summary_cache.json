@@ -10,5 +10,9 @@
   "graph-cycle-detection-using-dfs": {
     "hash": "30a7a3436600b1646f6e375946e9c06615a530e10a9febe5c9e1ad4bee233994",
     "summary": "Here's a summary of the captured content:\n\n*   The program initializes a `visited` array to keep track of nodes encountered during graph traversal.\n*   It takes input for the number of vertices (`n`) and the graph's structure, likely represented by an adjacency matrix.\n*   A Depth First Search (DFS) function is called, passing parameters such as the current node, a parent node (indicated by `-1`), the `visited` array, the graph data, and the total number of vertices.\n*   The core logic involves checking the return value of the DFS function to determine the presence of a cycle.\n*   Upon completion of the cycle detection process, the program prints a message indicating whether a cycle exists in the graph."
+  },
+  "regulargrammarandcfgdated8thoct-1-protected-view-powerpoint": {
+    "hash": "ca024bcd687802e9eca5003ba14fe316a3fadb2f15ac58cb7003dc2de9e1e84e",
+    "summary": "[RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint] 6 Regular Expression Applications 1 Text Search & Pattern Matching [e) Regular expressions (regex) used in editors, search engines, IDEs. [e) Example: Finding phone numbers, emails, dates in a document. Lexical Analysis in Compilers [e) Tokenization of keywords (if, else, while), identifiers, numbers, operators [e) Example: int count = 18; — split into tokens using regex. Input Validation fe Validating license plates, zip codes,…"
   }
 }
