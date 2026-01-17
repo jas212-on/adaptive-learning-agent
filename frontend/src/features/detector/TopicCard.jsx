@@ -1,0 +1,52 @@
+import { Link } from 'react-router-dom'
+import { Brain, ChevronRight } from 'lucide-react'
+import { Badge } from '../../components/ui/Badge'
+import { Card } from '../../components/ui/Card'
+
+function levelVariant(level) {
+  if (level === 'beginner') return 'success'
+  if (level === 'intermediate') return 'primary'
+  if (level === 'advanced') return 'warning'
+  return 'neutral'
+}
+
+export function TopicCard({ topic }) {
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex items-start gap-4 p-5">
+        <div className="mt-1 grid h-10 w-10 place-items-center rounded-xl bg-primary/15">
+          <Brain size={18} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="truncate font-semibold">{topic.title}</div>
+              <div className="mt-1 text-sm text-fg-muted">
+                Confidence: {Math.round((topic.confidence || 0) * 100)}%
+              </div>
+            </div>
+            <Badge variant={levelVariant(topic.level)} className="shrink-0">
+              {topic.level}
+            </Badge>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(topic.tags || []).slice(0, 4).map((t) => (
+              <Badge key={t} className="bg-bg-muted text-fg">
+                {t}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <Link
+              to={`/dashboard/topics/${topic.id}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-fg hover:underline"
+            >
+              View details <ChevronRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
