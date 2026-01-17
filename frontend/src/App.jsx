@@ -63,7 +63,7 @@ export default function App() {
           <Route index element={<Navigate to="detected" replace />} />
           <Route path="detected" element={<DetectedInfo />} />
           <Route path="roadmap" element={<RoadmapIndex />} />
-          <Route path="roadmap/:moduleId" element={<RoadmapModule />}>
+          <Route path="roadmap/:subtopicId" element={<RoadmapModule />}>
             <Route index element={<Navigate to="explainer" replace />} />
             <Route path="explainer" element={<Explainer />} />
             <Route path="resources" element={<Resources />} />

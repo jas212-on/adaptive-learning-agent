@@ -16,4 +16,5 @@ class DetectTopicRequest(BaseModel):
 class DetectTopicResponse(BaseModel):
     topic: str
     confidence: float | None = None
+    subtopics: list[str] = []
     raw: str | None = None

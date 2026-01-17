@@ -10,5 +10,13 @@
   "graph-cycle-detection-using-dfs": {
     "hash": "30a7a3436600b1646f6e375946e9c06615a530e10a9febe5c9e1ad4bee233994",
     "summary": "Here's a summary of the captured content:\n\n*   The program initializes a `visited` array to keep track of nodes encountered during graph traversal.\n*   It takes input for the number of vertices (`n`) and the graph's structure, likely represented by an adjacency matrix.\n*   A Depth First Search (DFS) function is called, passing parameters such as the current node, a parent node (indicated by `-1`), the `visited` array, the graph data, and the total number of vertices.\n*   The core logic involves checking the return value of the DFS function to determine the presence of a cycle.\n*   Upon completion of the cycle detection process, the program prints a message indicating whether a cycle exists in the graph."
+  },
+  "isc-211-introduction-to-bioinformatics-lecture-2-molecular-biology-pdf-original-profile-mozilla-firefox": {
+    "hash": "ab6954eedee7aaf46e2857d03e743796ca9affa08e1a547c7be2c427ab5b6300",
+    "summary": "[ISC 211 Introduction to Bioinformatics - Lecture 2-Molecular Biology.pdf — Original profile — Mozilla Firefox] Humans are 99.9% similar to the person sitting next to us. The rest of those genes tell us everything from our eye color to whether we're predisposed to certain diseases. The genetic similarity between a human and a human is: 99.9%\n[ISC 211 Introduction to Bioinformatics - Lecture 2-Molecular Biology.pdf — Original profile — Mozilla Firefox] Humans are 99.9% similar to the person sitti…"
+  },
+  "dna-chemical-structure": {
+    "hash": "23ac080c9fce7fc2deee830f780bb8124302213644ebd5184cad18d6a7fa62be",
+    "summary": "[ISC 211 Introduction to Bioinformatics - Lecture 2-Molecular Biology.pdf — Original profile — Mozilla Firefox] Chemical Structure of DNA ase is attached to a NH, NH nate group and a oO gy “O—P—OH,C oO < NH. “O—P—OH,C ‘ibose sugar to form a o H o H_ Nitrogenous base H__ Nitrogenous base oti HO H (adenine) HO (guanine) —t | l — Phosphate Ribose Phosphate Ribose thing that makes one group sugar group sugar Adenosine-5'-monophosphate Guanosine-5'-monophosphate tide different from another (AMP) (GMP…"
   }
 }

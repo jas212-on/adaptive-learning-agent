@@ -20,7 +20,7 @@ const steps = [
 
 export default function RoadmapModule() {
   const { topic } = useOutletContext()
-  const { moduleId } = useParams()
+  const { subtopicId } = useParams()
   const location = useLocation()
 
   const [progress, setProgress] = useState(() => getRoadmapProgress(topic.id))
@@ -29,7 +29,7 @@ export default function RoadmapModule() {
     setProgress(getRoadmapProgress(topic.id))
   }, [topic.id])
 
-  const moduleState = useMemo(() => ensureModule(progress, moduleId), [progress, moduleId])
+  const moduleState = useMemo(() => ensureModule(progress, subtopicId), [progress, subtopicId])
   const pct = useMemo(() => moduleCompletion(moduleState), [moduleState])
 
   const activeStepKey = useMemo(() => {
@@ -40,15 +40,15 @@ export default function RoadmapModule() {
 
   function toggleComplete(stepKey) {
     const next = { ...progress }
-    const current = ensureModule(next, moduleId)
-    next[moduleId] = { ...current, [stepKey]: !current[stepKey] }
+    const current = ensureModule(next, subtopicId)
+    next[subtopicId] = { ...current, [stepKey]: !current[stepKey] }
     setRoadmapProgress(topic.id, next)
     setProgress(next)
   }
 
   function resetModule() {
     const next = { ...progress }
-    next[moduleId] = { explainer: false, resources: false, questions: false, quiz: false }
+    next[subtopicId] = { explainer: false, resources: false, questions: false, quiz: false }
     setRoadmapProgress(topic.id, next)
     setProgress(next)
   }
@@ -59,9 +59,9 @@ export default function RoadmapModule() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
-          <div className="text-sm font-semibold">Module: {moduleId}</div>
+          <div className="text-sm font-semibold">Subtopic: {subtopicId}</div>
           <div className="mt-1 text-sm text-fg-muted">
-            Complete all steps to finish this module.
+            Complete all steps to finish this subtopic.
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -106,7 +106,7 @@ export default function RoadmapModule() {
         ))}
       </div>
 
-      <Outlet context={{ topic, moduleId }} />
+      <Outlet context={{ topic, subtopicId }} />
     </div>
   )
 }

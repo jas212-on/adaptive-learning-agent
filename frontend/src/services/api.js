@@ -164,6 +164,7 @@ export async function getTopic(topicId) {
       // Keep UI stable even if backend doesn't provide these yet
       detectedConcepts: t.detectedConcepts || [],
       tags: t.tags || [],
+      subtopics: t.subtopics || [],
       level: t.level || 'intermediate',
     }
   } catch (e) {
@@ -173,6 +174,7 @@ export async function getTopic(topicId) {
     return {
       ...topic,
       detectedConcepts: [],
+      subtopics: [],
     }
   }
 }

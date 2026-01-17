@@ -29,6 +29,7 @@ class DetectTopicRequest(BaseModel):
 class DetectTopicResponse(BaseModel):
     topic: str
     confidence: float | None = None
+    subtopics: list[str] = []
     raw: str | None = None
 
 load_dotenv()
@@ -86,6 +87,7 @@ class DetectedTopic(BaseModel):
     detectedAt: str | None = None
     snippets: list[DetectorSnippet] = []
     detectedConcepts: list[dict[str, Any]] = []
+    subtopics: list[str] = []
     summary: str | None = None
 
 
@@ -242,6 +244,27 @@ def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTo
     # {"title": <window title>, "ocr_text": <text>, "server_response": {"topic": ...} }
     # There may also be summary entries: {"window_title": ..., "time_spent_sec": ...}
     by_topic: dict[str, DetectedTopic] = {}
+    subtopic_keys: dict[str, set[str]] = {}
+
+    def _clean_subtopics(items: Any) -> list[str]:
+        if not isinstance(items, list):
+            return []
+        out: list[str] = []
+        seen: set[str] = set()
+        for x in items:
+            if not isinstance(x, str):
+                continue
+            s = re.sub(r"\s+", " ", x).strip(" \t\r\n-•*\"")
+            if not s:
+                continue
+            key = s.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(s)
+            if len(out) >= 16:
+                break
+        return out
 
     for e in entries:
         ocr_text = (e.get("ocr_text") or "").strip()
@@ -270,7 +293,19 @@ def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTo
                 detectedAt=None,
                 snippets=[],
                 detectedConcepts=[],
+                subtopics=[],
             )
+            subtopic_keys[topic_id] = set()
+
+        # Merge subtopics captured in output.json (dedupe, keep stable order).
+        if isinstance(server_resp, dict):
+            seen = subtopic_keys.setdefault(topic_id, set())
+            for st in _clean_subtopics(server_resp.get("subtopics")):
+                key = st.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                by_topic[topic_id].subtopics.append(st)
 
         snippet_text = ocr_text
         if len(snippet_text) > 220:
@@ -395,8 +430,14 @@ def detect_topic(data: DetectTopicRequest):
     title = (data.title or "").strip()
 
     prompt = (
-        "Extract the single most likely learning topic from the following OCR text. "
-        "Return ONLY the topic as a short noun phrase (max 8 words).\n\n"
+        "You are helping an adaptive learning app label OCR text.\n"
+        "Extract (1) the single most likely learning topic, and (2) a short list of subtopics.\n\n"
+        "Return ONLY valid JSON (no markdown, no code fences) with this shape:\n"
+        '{"topic": "<short noun phrase, max 8 words>", "subtopics": ["<short phrase>", "..."]}\n\n'
+        "Rules:\n"
+        "- subtopics: 0-8 items, each max 6 words\n"
+        "- Prefer concrete concepts (e.g., 'DNA replication', 'INNER JOIN')\n"
+        "- Do not include UI/browser/app names\n\n"
         f"Window title: {title}\n\n"
         f"OCR text:\n{text}"
     )
@@ -407,17 +448,67 @@ def detect_topic(data: DetectTopicRequest):
         words = [w for w in re.split(r"\s+", text) if w]
         return " ".join(words[:8]) or "Detected topic"
 
+    def _clean_subtopics(items: Any) -> list[str]:
+        if not isinstance(items, list):
+            return []
+        out: list[str] = []
+        seen: set[str] = set()
+        for x in items:
+            if not isinstance(x, str):
+                continue
+            s = re.sub(r"\s+", " ", x).strip(" \t\r\n-•*\"")
+            if not s:
+                continue
+            key = s.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(s)
+            if len(out) >= 8:
+                break
+        return out
+
+    def _parse_gemini_json(raw_text: str) -> tuple[str | None, list[str] | None]:
+        candidate = (raw_text or "").strip()
+        if not candidate:
+            return None, None
+
+        # Gemini sometimes wraps JSON in markdown fences; try to extract the first JSON object.
+        if candidate.startswith("```"):
+            candidate = re.sub(r"^```[a-zA-Z]*\n", "", candidate)
+            candidate = re.sub(r"\n```$", "", candidate).strip()
+
+        m = re.search(r"\{[\s\S]*\}", candidate)
+        if m:
+            candidate = m.group(0).strip()
+
+        try:
+            obj = json.loads(candidate)
+        except Exception:
+            return None, None
+
+        if not isinstance(obj, dict):
+            return None, None
+
+        topic_val = obj.get("topic")
+        topic_str = topic_val.strip() if isinstance(topic_val, str) else None
+        subtopics = _clean_subtopics(obj.get("subtopics"))
+        return topic_str, subtopics
+
     try:
-        topic = ask_gemini(prompt).strip()
+        raw = ask_gemini(prompt)
+        topic, subtopics = _parse_gemini_json(raw)
         if not topic:
             topic = fallback_topic()
-        return {"topic": topic, "confidence": None, "raw": None}
+        if subtopics is None:
+            subtopics = []
+        return {"topic": topic, "subtopics": subtopics, "confidence": None, "raw": None}
     except RuntimeError as e:
         # Missing key / AI disabled
-        return {"topic": fallback_topic(), "confidence": None, "raw": str(e)}
+        return {"topic": fallback_topic(), "subtopics": [], "confidence": None, "raw": str(e)}
     except Exception as e:
         # Quota / transient errors shouldn't kill detection.
-        return {"topic": fallback_topic(), "confidence": None, "raw": str(e)}
+        return {"topic": fallback_topic(), "subtopics": [], "confidence": None, "raw": str(e)}
 
 @app.get("/ocr/status")
 def ocr_status():

@@ -4,7 +4,6 @@ import { CheckCircle2, ChevronRight, Route } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge'
 import { Card, CardContent } from '../../../components/ui/Card'
 import { Spinner } from '../../../components/ui/Spinner'
-import * as api from '../../../services/api'
 import {
   ensureModule,
   getRoadmapProgress,
@@ -21,74 +20,47 @@ function slugify(s) {
 export default function RoadmapIndex() {
   const { topic } = useOutletContext()
 
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
   const [progress, setProgress] = useState(() => getRoadmapProgress(topic.id))
 
   useEffect(() => {
     setProgress(getRoadmapProgress(topic.id))
   }, [topic.id])
 
-  useEffect(() => {
-    let mounted = true
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await api.generateRoadmap(topic.id, topic.level || 'intermediate')
-        if (!mounted) return
-        setData(res)
-      } catch (err) {
-        if (mounted) setError(err?.message || 'Failed to load roadmap')
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      mounted = false
-    }
-  }, [topic.id, topic.level])
-
-  const modules = useMemo(() => {
-    const steps = data?.steps || []
-    return steps.map((s, idx) => ({
-      id: slugify(s.title) || `module-${idx + 1}`,
-      title: s.title,
-      items: s.items || [],
-    }))
-  }, [data])
+  const subtopics = useMemo(() => {
+    const items = Array.isArray(topic?.subtopics) ? topic.subtopics : []
+    return items
+      .map((t, idx) => ({
+        id: slugify(t) || `subtopic-${idx + 1}`,
+        title: t,
+      }))
+      .filter((x) => x.id)
+  }, [topic?.subtopics])
 
   const overall = useMemo(() => {
-    if (!modules.length) return 0
+    if (!subtopics.length) return 0
     const pct =
-      modules.reduce((acc, m) => acc + moduleCompletion(ensureModule(progress, m.id)), 0) /
-      modules.length
+      subtopics.reduce((acc, m) => acc + moduleCompletion(ensureModule(progress, m.id)), 0) /
+      subtopics.length
     return pct
-  }, [modules, progress])
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-fg-muted">
-        <Spinner /> Loading roadmap…
-      </div>
-    )
-  }
-
-  if (error) return <div className="text-sm text-red-500">{error}</div>
+  }, [subtopics, progress])
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-fg-muted">
-          Complete modules to master the topic. Each module contains explainer, resources, questions, and a quiz.
+          Subtopics are generated from what was detected in your session. Each subtopic contains explainer, resources, questions, and a quiz.
         </div>
         <Badge className="bg-bg-muted text-fg">Overall: {Math.round(overall * 100)}%</Badge>
       </div>
 
       <div className="space-y-3">
-        {modules.map((m, index) => {
+        {!subtopics.length ? (
+          <div className="flex items-center gap-2 text-sm text-fg-muted">
+            <Spinner /> No subtopics yet. Keep detection running to collect them.
+          </div>
+        ) : null}
+
+        {subtopics.map((m, index) => {
           const st = ensureModule(progress, m.id)
           const pct = moduleCompletion(st)
           const done = pct >= 1
@@ -106,11 +78,11 @@ export default function RoadmapIndex() {
                           <Route size={18} className="text-fg-muted" />
                         )}
                         <div className="truncate text-sm font-semibold">
-                          Module {index + 1}: {m.title}
+                          Subtopic {index + 1}: {m.title}
                         </div>
                       </div>
                       <div className="mt-1 text-xs text-fg-muted">
-                        {m.items.length ? m.items[0] : 'Open to start the module.'}
+                        Open to start this subtopic.
                       </div>
                     </div>
 
@@ -134,7 +106,7 @@ export default function RoadmapIndex() {
       </div>
 
       <div className="text-xs text-fg-muted">
-        Tip: As you finish a module’s steps, its bar shifts towards green.
+        Tip: As you finish a subtopic’s steps, its bar shifts towards green.
       </div>
     </div>
   )

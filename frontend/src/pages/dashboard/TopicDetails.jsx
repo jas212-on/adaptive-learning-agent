@@ -106,7 +106,7 @@ export default function TopicDetails() {
           <div className="min-w-0">
             <CardTitle className="truncate">{topic.title}</CardTitle>
             <div className="mt-1 text-sm text-fg-muted">
-              Two views: what was detected, and a module roadmap to master it.
+              Two views: what was detected, and a subtopic roadmap to master it.
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
