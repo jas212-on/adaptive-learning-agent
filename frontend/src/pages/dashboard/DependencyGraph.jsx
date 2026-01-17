@@ -1,403 +1,658 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  MarkerType,
-  Panel
-} from 'reactflow'
-import 'reactflow/dist/style.css'
-import { Network, AlertCircle, RefreshCw } from 'lucide-react'
+import { Network, ChevronDown, ChevronRight, RefreshCw, Settings2, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
+import { Button } from '../../components/ui/Button'
 import { cn } from '../../lib/cn'
 import * as api from '../../services/api'
 
 /**
- * Advanced hierarchical layout algorithm for dependency graphs
- * Assigns levels based on topological ordering and centers nodes per level
+ * Layout algorithm for hierarchical concept graph.
+ * Organizes nodes in a tree-like structure based on depth and parent relationships.
  */
-function computeHierarchicalLayout(graphData) {
-  if (!graphData?.nodes?.length) return { nodes: [], edges: [] }
-
-  const { nodes: rawNodes, edges: rawEdges } = graphData
-  const spacingX = 250
-  const spacingY = 150
-
-  // Build adjacency map for level assignment
-  const levelMap = new Map()
-  const inDegree = new Map()
-  const adjList = new Map()
-
-  // Initialize
-  rawNodes.forEach((n) => {
-    inDegree.set(n.id, 0)
-    adjList.set(n.id, [])
+function hierarchicalLayout(nodes, edges) {
+  const positions = new Map()
+  
+  if (!nodes || nodes.length === 0) return positions
+  
+  // Build parent-children map
+  const childrenMap = new Map()
+  const nodeMap = new Map(nodes.map(n => [n.id, n]))
+  
+  nodes.forEach(n => {
+    childrenMap.set(n.id, [])
   })
-
-  // Build graph structure
-  rawEdges.forEach((e) => {
-    const source = e.from || e.source
-    const target = e.to || e.target
-    if (source && target) {
-      adjList.get(source)?.push(target)
-      inDegree.set(target, (inDegree.get(target) || 0) + 1)
+  
+  edges.forEach(e => {
+    const children = childrenMap.get(e.from) || []
+    children.push(e.to)
+    childrenMap.set(e.from, children)
+  })
+  
+  // Find root node (depth 0 or kind === 'core')
+  const root = nodes.find(n => n.depth === 0 || n.kind === 'core') || nodes[0]
+  
+  // Calculate tree dimensions - INCREASED for better visibility
+  const nodeWidth = 200
+  const nodeHeight = 70
+  const horizontalGap = 40
+  const verticalGap = 120
+  
+  // Position nodes recursively
+  function positionSubtree(nodeId, startX, depth, visited = new Set()) {
+    if (visited.has(nodeId)) return startX
+    visited.add(nodeId)
+    
+    const children = childrenMap.get(nodeId) || []
+    const y = 100 + depth * (nodeHeight + verticalGap)
+    
+    if (children.length === 0) {
+      // Leaf node
+      positions.set(nodeId, { x: startX + nodeWidth / 2, y })
+      return startX + nodeWidth + horizontalGap
     }
-  })
-
-  // Topological sort to assign levels (BFS-based)
-  const queue = []
-  rawNodes.forEach((n) => {
-    if (inDegree.get(n.id) === 0) {
-      levelMap.set(n.id, 0)
-      queue.push(n.id)
-    }
-  })
-
-  while (queue.length > 0) {
-    const current = queue.shift()
-    const currentLevel = levelMap.get(current)
-
-    adjList.get(current)?.forEach((neighbor) => {
-      const newLevel = currentLevel + 1
-      levelMap.set(neighbor, Math.max(levelMap.get(neighbor) || 0, newLevel))
-
-      const deg = inDegree.get(neighbor) - 1
-      inDegree.set(neighbor, deg)
-      if (deg === 0) queue.push(neighbor)
+    
+    // Position children first
+    let currentX = startX
+    const childPositions = []
+    
+    children.forEach(childId => {
+      currentX = positionSubtree(childId, currentX, depth + 1, visited)
+      const childPos = positions.get(childId)
+      if (childPos) childPositions.push(childPos.x)
     })
+    
+    // Position parent centered above children
+    if (childPositions.length > 0) {
+      const centerX = (Math.min(...childPositions) + Math.max(...childPositions)) / 2
+      positions.set(nodeId, { x: centerX, y })
+    } else {
+      positions.set(nodeId, { x: startX + nodeWidth / 2, y })
+    }
+    
+    return currentX
   }
-
-  // Assign default level to any unvisited nodes
-  rawNodes.forEach((n) => {
-    if (!levelMap.has(n.id)) levelMap.set(n.id, 0)
-  })
-
-  // Group nodes by level
-  const levelGroups = new Map()
-  rawNodes.forEach((n) => {
-    const lvl = levelMap.get(n.id)
-    if (!levelGroups.has(lvl)) levelGroups.set(lvl, [])
-    levelGroups.get(lvl).push(n)
-  })
-
-  // Position nodes
-  const positionedNodes = []
-  levelGroups.forEach((nodesInLevel, level) => {
-    const count = nodesInLevel.length
-    const totalWidth = (count - 1) * spacingX
-    const startX = -totalWidth / 2
-
-    nodesInLevel.forEach((node, index) => {
-      positionedNodes.push({
-        id: node.id,
-        type: 'default',
-        position: {
-          x: startX + index * spacingX,
-          y: level * spacingY
-        },
-        data: {
-          label: node.label || node.id,
-          kind: node.kind,
-          description: node.description
-        },
-        style: {
-          width: 100,
-          height: 100,
-          borderRadius: '50%',
-          border: `3px solid ${getNodeColor(node.kind)}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '13px',
-          fontWeight: '600',
-          background: getNodeBackground(node.kind),
-          textAlign: 'center',
-          padding: '8px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-          transition: 'all 0.2s ease-in-out'
-        }
-      })
-    })
-  })
-
-  // Create edges with proper styling
-  const formattedEdges = rawEdges
-    .filter((e) => {
-      const source = e.from || e.source
-      const target = e.to || e.target
-      return source && target
-    })
-    .map((e, i) => ({
-      id: `edge-${i}`,
-      source: e.from || e.source,
-      target: e.to || e.target,
-      type: 'smoothstep',
-      animated: true,
-      style: { strokeWidth: 2, stroke: '#94a3b8' },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: '#94a3b8'
-      }
-    }))
-
-  return { nodes: positionedNodes, edges: formattedEdges }
+  
+  positionSubtree(root.id, 60, 0)
+  
+  return positions
 }
 
 /**
- * Get node border color based on kind
+ * Get color scheme for node based on kind and depth.
  */
-function getNodeColor(kind) {
-  const colors = {
-    prereq: '#f59e0b',
-    core: '#3b82f6',
-    next: '#10b981',
-    default: '#6366f1'
-  }
-  return colors[kind] || colors.default
-}
-
-/**
- * Get node background color based on kind
- */
-function getNodeBackground(kind) {
-  const backgrounds = {
-    prereq: '#fef3c7',
-    core: '#dbeafe',
-    next: '#d1fae5',
-    default: '#e0e7ff'
-  }
-  return backgrounds[kind] || backgrounds.default
-}
-
-/**
- * Production-level Dependency Graph Component
- */
-export default function DependencyGraph() {
-  const [params] = useSearchParams()
-  const topicId = params.get('topic') || 'react-hooks'
-
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [graphData, setGraphData] = useState(null)
-  const [selectedNode, setSelectedNode] = useState(null)
-
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
-
-  // Fetch graph data
-  useEffect(() => {
-    let mounted = true
-
-    async function fetchGraph() {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const data = await api.getConceptGraph(topicId)
-        if (!mounted) return
-
-        setGraphData(data)
-
-        // Compute layout and set nodes/edges
-        const { nodes: layoutNodes, edges: layoutEdges } = computeHierarchicalLayout(data)
-        setNodes(layoutNodes)
-        setEdges(layoutEdges)
-
-        // Auto-select core node or first node
-        const coreNode = data.nodes.find((n) => n.kind === 'core')
-        setSelectedNode(coreNode || data.nodes[0])
-      } catch (err) {
-        if (mounted) {
-          console.error('Failed to load graph:', err)
-          setError(err?.message || 'Failed to load concept graph')
-        }
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
-    fetchGraph()
-
-    return () => {
-      mounted = false
-    }
-  }, [topicId, setNodes, setEdges])
-
-  // Handle node click
-  const onNodeClick = useCallback(
-    (event, node) => {
-      const nodeData = graphData?.nodes.find((n) => n.id === node.id)
-      setSelectedNode(nodeData)
-
-      // Highlight selected node
-      setNodes((nds) =>
-        nds.map((n) => ({
-          ...n,
-          style: {
-            ...n.style,
-            border:
-              n.id === node.id
-                ? `4px solid ${getNodeColor(n.data.kind)}`
-                : `3px solid ${getNodeColor(n.data.kind)}`,
-            transform: n.id === node.id ? 'scale(1.1)' : 'scale(1)'
-          }
-        }))
-      )
+function getNodeStyle(kind, depth, isSelected) {
+  const baseStyles = {
+    core: {
+      fill: 'hsl(var(--primary) / 0.15)',
+      stroke: 'hsl(var(--primary))',
+      text: 'hsl(var(--primary))',
     },
-    [graphData, setNodes]
-  )
+    subtopic: {
+      fill: 'hsl(var(--accent) / 0.1)',
+      stroke: 'hsl(var(--accent-foreground) / 0.5)',
+      text: 'hsl(var(--fg))',
+    },
+    detail: {
+      fill: 'hsl(var(--bg-muted))',
+      stroke: 'hsl(var(--border))',
+      text: 'hsl(var(--fg-muted))',
+    },
+    prereq: {
+      fill: 'hsl(var(--bg))',
+      stroke: 'hsl(var(--border))',
+      text: 'hsl(var(--fg-muted))',
+    },
+    next: {
+      fill: 'hsl(var(--bg))',
+      stroke: 'hsl(var(--border))',
+      text: 'hsl(var(--fg-muted))',
+    },
+  }
+  
+  const style = baseStyles[kind] || baseStyles.subtopic
+  
+  if (isSelected) {
+    return {
+      fill: 'hsl(var(--card))',
+      stroke: 'hsl(var(--primary))',
+      text: 'hsl(var(--fg))',
+      strokeWidth: 3,
+    }
+  }
+  
+  return { ...style, strokeWidth: 2 }
+}
 
-  // Retry handler
-  const handleRetry = useCallback(() => {
-    window.location.reload()
+/**
+ * Topic selector component shown when no topic is selected.
+ */
+function TopicSelector() {
+  const [topics, setTopics] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadTopics() {
+      try {
+        const res = await api.listDetectedTopics()
+        setTopics(res || [])
+      } catch (err) {
+        console.error('Failed to load topics:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadTopics()
   }, [])
 
-  // Memoize node types for performance
-  const nodeTypes = useMemo(() => ({}), [])
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Network size={18} /> Select a Topic
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-fg-muted mb-4">
+          Choose a detected topic to view its concept dependency graph.
+        </div>
+        
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-fg-muted">
+            <Spinner /> Loading topics…
+          </div>
+        ) : topics.length === 0 ? (
+          <div className="text-center py-8">
+            <Network size={48} className="mx-auto mb-4 text-fg-muted opacity-50" />
+            <div className="text-fg-muted">No topics detected yet.</div>
+            <div className="mt-2 text-sm text-fg-muted">
+              Start the detector on the Detection page to capture topics.
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {topics.map((t) => (
+              <a
+                key={t.id}
+                href={`?topic=${encodeURIComponent(t.id)}`}
+                className="flex items-center gap-3 rounded-xl border p-4 hover:bg-bg-muted transition-colors"
+              >
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary">
+                  <Network size={18} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium truncate">{t.title}</div>
+                  <div className="text-xs text-fg-muted">{t.level || 'Unknown level'}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
-  // Loading state
+export default function DependencyGraph() {
+  const [params] = useSearchParams()
+  const topicId = params.get('topic')
+
+  const [loading, setLoading] = useState(true)
+  const [graph, setGraph] = useState(null)
+  const [error, setError] = useState(null)
+  const [selected, setSelected] = useState(null)
+  const [zoom, setZoom] = useState(1)
+  const [options, setOptions] = useState({
+    maxDepth: 2,
+    maxChildren: 5,
+    useGemini: true,
+  })
+  const [showSettings, setShowSettings] = useState(false)
+  const svgContainerRef = useRef(null)
+
+  const loadGraph = useCallback(async () => {
+    if (!topicId) {
+      setError('No topic selected. Please select a topic from the Topics page.')
+      setLoading(false)
+      return
+    }
+    
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.getConceptGraph(topicId, options)
+      setGraph(res)
+      // Select the root/core node by default
+      const coreNode = res.nodes.find((n) => n.kind === 'core' || n.depth === 0)
+      setSelected(coreNode?.id || res.nodes[0]?.id)
+      setZoom(1) // Reset zoom on new graph
+    } catch (err) {
+      setError(err?.message || 'Failed to load graph')
+    } finally {
+      setLoading(false)
+    }
+  }, [topicId, options])
+
+  useEffect(() => {
+    loadGraph()
+  }, [loadGraph])
+
+  // Calculate positions using hierarchical layout
+  const positions = useMemo(() => {
+    if (!graph) return new Map()
+    return hierarchicalLayout(graph.nodes, graph.edges)
+  }, [graph])
+
+  // Calculate SVG dimensions based on node positions
+  const svgDimensions = useMemo(() => {
+    if (positions.size === 0) return { width: 800, height: 600, minX: 0, minY: 0 }
+    
+    const xs = Array.from(positions.values()).map(p => p.x)
+    const ys = Array.from(positions.values()).map(p => p.y)
+    
+    const minX = Math.min(...xs) - 150
+    const maxX = Math.max(...xs) + 150
+    const minY = Math.min(...ys) - 80
+    const maxY = Math.max(...ys) + 80
+    
+    return {
+      width: Math.max(800, maxX - minX),
+      height: Math.max(500, maxY - minY),
+      minX,
+      minY,
+    }
+  }, [positions])
+
+  // Calculate viewBox based on zoom
+  const viewBox = useMemo(() => {
+    const { width, height, minX, minY } = svgDimensions
+    return `${minX} ${minY} ${width} ${height}`
+  }, [svgDimensions])
+
+  if (!topicId) {
+    return <TopicSelector />
+  }
+
   if (loading) {
     return (
-      <div className="flex h-[600px] items-center justify-center">
-        <div className="flex items-center gap-3 text-base text-fg-muted">
-          <Spinner />
-          <span>Loading concept graph...</span>
-        </div>
+      <div className="flex items-center gap-2 text-sm text-fg-muted">
+        <Spinner /> Building concept graph…
       </div>
     )
   }
 
-  // Error state
   if (error) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-          <p className="mb-2 text-lg font-semibold text-red-600">Failed to Load Graph</p>
-          <p className="mb-4 text-sm text-fg-muted">{error}</p>
-          <button
-            onClick={handleRetry}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
-          >
-            <RefreshCw size={16} />
-            Retry
-          </button>
+        <CardContent className="py-8">
+          <div className="text-center">
+            <div className="text-sm text-red-500 mb-4">{error}</div>
+            <Button variant="outline" size="sm" onClick={loadGraph}>
+              <RefreshCw size={14} className="mr-2" /> Retry
+            </Button>
+          </div>
         </CardContent>
       </Card>
     )
   }
 
+  const selectedNode = graph?.nodes.find((n) => n.id === selected)
+  const childNodes = graph?.edges
+    .filter(e => e.from === selected)
+    .map(e => graph.nodes.find(n => n.id === e.to))
+    .filter(Boolean) || []
+
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Network size={20} />
-            Concept Dependency Graph
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Network size={18} /> Concept Dependency Graph
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <Settings2 size={16} />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadGraph}
+                disabled={loading}
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              </Button>
+            </div>
+          </div>
+          
+          {showSettings && (
+            <div className="mt-4 p-4 rounded-lg bg-bg-muted border space-y-3">
+              <div className="text-sm font-medium">Graph Settings</div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-xs text-fg-muted">Max Depth (0-2)</span>
+                  <select
+                    className="w-full rounded border bg-bg p-2 text-sm"
+                    value={options.maxDepth}
+                    onChange={(e) => setOptions(o => ({ ...o, maxDepth: parseInt(e.target.value) }))}
+                  >
+                    <option value={0}>0 - Core only</option>
+                    <option value={1}>1 - Subtopics</option>
+                    <option value={2}>2 - Full depth</option>
+                  </select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs text-fg-muted">Max Children</span>
+                  <select
+                    className="w-full rounded border bg-bg p-2 text-sm"
+                    value={options.maxChildren}
+                    onChange={(e) => setOptions(o => ({ ...o, maxChildren: parseInt(e.target.value) }))}
+                  >
+                    {[3, 4, 5, 6, 7, 8].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex items-center gap-2 pt-5">
+                  <input
+                    type="checkbox"
+                    checked={options.useGemini}
+                    onChange={(e) => setOptions(o => ({ ...o, useGemini: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Use AI expansion</span>
+                </label>
+              </div>
+              <Button size="sm" onClick={loadGraph}>Apply</Button>
+            </div>
+          )}
         </CardHeader>
-        <CardContent className="grid gap-4 lg:grid-cols-4">
-          {/* Graph Visualization */}
-          <div className="lg:col-span-3">
-            <div className="rounded-xl border bg-bg-muted" style={{ height: '600px' }}>
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onNodeClick={onNodeClick}
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.2 }}
-                minZoom={0.5}
-                maxZoom={1.5}
-                defaultEdgeOptions={{
-                  animated: true
+        
+        <CardContent className="grid gap-4 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            {/* Zoom controls */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
+                  disabled={zoom <= 0.5}
+                >
+                  <ZoomOut size={14} />
+                </Button>
+                <span className="text-sm text-fg-muted min-w-[4rem] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setZoom(z => Math.min(2, z + 0.25))}
+                  disabled={zoom >= 2}
+                >
+                  <ZoomIn size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setZoom(1)}
+                  title="Reset zoom"
+                >
+                  <Maximize2 size={14} />
+                </Button>
+              </div>
+              <div className="text-xs text-fg-muted">
+                Scroll to pan • Click nodes to select
+              </div>
+            </div>
+            
+            <div 
+              ref={svgContainerRef}
+              className="rounded-xl border bg-gradient-to-br from-bg-muted to-bg overflow-auto"
+              style={{ maxHeight: '600px' }}
+            >
+              <svg 
+                viewBox={viewBox} 
+                style={{ 
+                  width: svgDimensions.width * zoom,
+                  height: svgDimensions.height * zoom,
+                  minWidth: '100%',
+                  minHeight: '500px',
                 }}
               >
-                <Background color="#94a3b8" gap={16} />
-                <Controls />
-                <MiniMap
-                  nodeColor={(node) => getNodeColor(node.data.kind)}
-                  maskColor="rgba(0, 0, 0, 0.1)"
-                  style={{
-                    background: 'white',
-                    border: '1px solid #e2e8f0'
-                  }}
-                />
-                <Panel position="top-right" className="bg-white rounded-lg shadow-md p-3 m-2">
-                  <div className="flex gap-3 text-xs">
-                    <div className="flex items-center gap-1">
-                      <div className="h-3 w-3 rounded-full" style={{ background: '#fef3c7', border: '2px solid #f59e0b' }} />
-                      <span>Prerequisites</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="h-3 w-3 rounded-full" style={{ background: '#dbeafe', border: '2px solid #3b82f6' }} />
-                      <span>Core</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="h-3 w-3 rounded-full" style={{ background: '#d1fae5', border: '2px solid #10b981' }} />
-                      <span>Next Topics</span>
-                    </div>
-                  </div>
-                </Panel>
-              </ReactFlow>
+                <defs>
+                  <marker
+                    id="arrow"
+                    viewBox="0 0 10 10"
+                    refX="10"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--fg-muted))" />
+                  </marker>
+                  {/* Gradient definitions for nodes */}
+                  <linearGradient id="coreGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(var(--primary) / 0.25)" />
+                    <stop offset="100%" stopColor="hsl(var(--primary) / 0.1)" />
+                  </linearGradient>
+                  <linearGradient id="subtopicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(var(--accent) / 0.2)" />
+                    <stop offset="100%" stopColor="hsl(var(--accent) / 0.05)" />
+                  </linearGradient>
+                  <linearGradient id="detailGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(var(--bg-muted))" />
+                    <stop offset="100%" stopColor="hsl(var(--bg))" />
+                  </linearGradient>
+                  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
+                  </filter>
+                </defs>
+
+                {/* Draw edges */}
+                {graph.edges.map((e, idx) => {
+                  const from = positions.get(e.from)
+                  const to = positions.get(e.to)
+                  if (!from || !to) return null
+                  
+                  // Calculate edge endpoints (from bottom of parent to top of child)
+                  const x1 = from.x
+                  const y1 = from.y + 35 // bottom of parent node
+                  const x2 = to.x
+                  const y2 = to.y - 35 // top of child node
+                  
+                  // Draw curved path
+                  const midY = (y1 + y2) / 2
+                  const path = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`
+                  
+                  const isConnectedToSelected = e.from === selected || e.to === selected
+                  
+                  return (
+                    <path
+                      key={idx}
+                      d={path}
+                      stroke={isConnectedToSelected ? "hsl(var(--primary))" : "hsl(var(--fg-muted))"}
+                      strokeWidth={isConnectedToSelected ? "3" : "2"}
+                      fill="none"
+                      markerEnd="url(#arrow)"
+                      opacity={isConnectedToSelected ? "0.8" : "0.4"}
+                    />
+                  )
+                })}
+
+                {/* Draw nodes */}
+                {graph.nodes.map((n) => {
+                  const p = positions.get(n.id)
+                  if (!p) return null
+                  
+                  const isSelected = n.id === selected
+                  const style = getNodeStyle(n.kind, n.depth, isSelected)
+                  
+                  // Node dimensions
+                  const nodeW = 200
+                  const nodeH = 70
+                  
+                  // Get gradient based on kind
+                  const gradientId = n.kind === 'core' ? 'coreGradient' : 
+                                     n.kind === 'subtopic' ? 'subtopicGradient' : 'detailGradient'
+                  
+                  // Truncate label if too long - allow more characters
+                  const maxLabelLength = 24
+                  const displayLabel = n.label.length > maxLabelLength 
+                    ? n.label.substring(0, maxLabelLength - 1) + '…'
+                    : n.label
+                  
+                  return (
+                    <g
+                      key={n.id}
+                      onClick={() => setSelected(n.id)}
+                      style={{ cursor: 'pointer' }}
+                      filter={isSelected ? 'url(#shadow)' : undefined}
+                    >
+                      <rect
+                        x={p.x - nodeW / 2}
+                        y={p.y - nodeH / 2}
+                        width={nodeW}
+                        height={nodeH}
+                        rx="14"
+                        fill={isSelected ? 'hsl(var(--card))' : `url(#${gradientId})`}
+                        stroke={style.stroke}
+                        strokeWidth={style.strokeWidth}
+                      />
+                      {/* Main label */}
+                      <text
+                        x={p.x}
+                        y={p.y + (n.kind === 'core' ? 2 : -2)}
+                        textAnchor="middle"
+                        fill={style.text}
+                        fontSize={n.kind === 'core' ? '16' : '14'}
+                        fontFamily="ui-sans-serif, system-ui"
+                        fontWeight={n.kind === 'core' ? '700' : '500'}
+                      >
+                        {displayLabel}
+                      </text>
+                      {/* Kind badge for non-core nodes */}
+                      {n.kind !== 'core' && (
+                        <text
+                          x={p.x}
+                          y={p.y + 18}
+                          textAnchor="middle"
+                          fill="hsl(var(--fg-muted))"
+                          fontSize="10"
+                          fontFamily="ui-sans-serif, system-ui"
+                        >
+                          {n.kind === 'subtopic' ? '◆ Subtopic' : '○ Detail'}
+                        </text>
+                      )}
+                      {/* Core topic indicator */}
+                      {n.kind === 'core' && (
+                        <text
+                          x={p.x}
+                          y={p.y + 22}
+                          textAnchor="middle"
+                          fill="hsl(var(--primary))"
+                          fontSize="11"
+                          fontFamily="ui-sans-serif, system-ui"
+                          fontWeight="600"
+                        >
+                          ★ Core Topic
+                        </text>
+                      )}
+                    </g>
+                  )
+                })}
+              </svg>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between text-xs text-fg-muted">
+              <span>
+                {graph.nodes.length} concepts • {graph.edges.length} relationships • 
+                Depth: {graph.maxDepth}
+              </span>
+              <span>Click a concept to see details</span>
             </div>
           </div>
 
-          {/* Info Panel */}
-          <div className="space-y-4">
-            {/* Selected Node Info */}
-            <div className="rounded-xl border bg-card p-4 shadow-sm">
-              <div className="mb-2 text-sm font-semibold text-fg">Selected Concept</div>
+          {/* Side panel */}
+          <div className="space-y-3">
+            {/* Selected concept details */}
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold mb-3">Selected Concept</div>
               {selectedNode ? (
-                <>
-                  <div className="mb-2 text-base font-bold text-fg">{selectedNode.label}</div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <span
-                      className="inline-block rounded-full px-2 py-1 text-xs font-medium"
-                      style={{
-                        background: getNodeBackground(selectedNode.kind),
-                        color: getNodeColor(selectedNode.kind)
-                      }}
-                    >
-                      {selectedNode.kind || 'default'}
+                <div className="space-y-2">
+                  <div className="text-base font-medium">{selectedNode.label}</div>
+                  <div className="flex items-center gap-2 text-xs text-fg-muted">
+                    <span className={cn(
+                      'px-2 py-0.5 rounded-full',
+                      selectedNode.kind === 'core' && 'bg-primary/20 text-primary',
+                      selectedNode.kind === 'subtopic' && 'bg-accent/20',
+                      selectedNode.kind === 'detail' && 'bg-bg-muted',
+                    )}>
+                      {selectedNode.kind}
                     </span>
+                    {selectedNode.depth > 0 && (
+                      <span>Depth: {selectedNode.depth}</span>
+                    )}
                   </div>
-                  {selectedNode.description && (
-                    <p className="text-sm text-fg-muted">{selectedNode.description}</p>
+                  
+                  {/* Show children if any */}
+                  {childNodes.length > 0 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="text-xs text-fg-muted mb-2">
+                        Contains {childNodes.length} subtopics:
+                      </div>
+                      <ul className="space-y-1">
+                        {childNodes.map(child => (
+                          <li
+                            key={child.id}
+                            className="text-sm text-fg-muted hover:text-fg cursor-pointer flex items-center gap-1"
+                            onClick={() => setSelected(child.id)}
+                          >
+                            <ChevronRight size={12} />
+                            {child.label}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                </>
+                </div>
               ) : (
-                <p className="text-sm text-fg-muted">Click on a node to view details</p>
+                <div className="text-sm text-fg-muted">No concept selected</div>
               )}
             </div>
 
-            {/* Graph Stats */}
-            <div className="rounded-xl border bg-card p-4 shadow-sm">
-              <div className="mb-3 text-sm font-semibold text-fg">Graph Statistics</div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-fg-muted">Total Concepts:</span>
-                  <span className="font-semibold">{nodes.length}</span>
+            {/* Legend */}
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold mb-3">Legend</div>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-primary/20 border border-primary"></div>
+                  <span>Core Topic</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-fg-muted">Dependencies:</span>
-                  <span className="font-semibold">{edges.length}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-accent/10 border border-accent-foreground/50"></div>
+                  <span>Subtopic (L1)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-bg-muted border"></div>
+                  <span>Detail (L2)</span>
                 </div>
               </div>
             </div>
 
-            {/* Learning Path Hint */}
-            <div className="rounded-xl border bg-card p-4 shadow-sm">
-              <div className="mb-2 text-sm font-semibold text-fg">Learning Path</div>
-              <p className="text-xs text-fg-muted leading-relaxed">
-                Follow the arrows from top to bottom. Start with prerequisites (orange), master the core concept (blue), then explore next topics (green).
-              </p>
+            {/* Navigation hints */}
+            <div className="rounded-xl border bg-card p-4">
+              <div className="text-sm font-semibold mb-2">Learning Path</div>
+              <div className="text-xs text-fg-muted">
+                Start with the core concept, then explore subtopics for deeper understanding.
+                Each level builds on the previous one.
+              </div>
             </div>
           </div>
         </CardContent>

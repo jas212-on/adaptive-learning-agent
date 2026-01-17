@@ -1,0 +1,44 @@
+{
+  "195ec59c2b51af9e": [
+    "Network Protocol Models",
+    "IP Addressing and Routing",
+    "Common Network Hardware",
+    "Network Security Basics",
+    "Wireless Network Principles"
+  ],
+  "b55f4118e2dc5a71": [
+    "OSI Model Layers",
+    "TCP/IP Model Layers",
+    "Layer Functions",
+    "Protocol Data Units",
+    "Encapsulation Decapsulation"
+  ],
+  "3bed11386d913598": [
+    "IP Addressing Basics",
+    "Subnetting and CIDR",
+    "Routing Principles",
+    "Routing Protocols",
+    "Packet Forwarding Process"
+  ],
+  "d91fc4916e52f601": [
+    "Network Routers",
+    "Ethernet Switches",
+    "Network Interface Cards",
+    "Wireless Access Points",
+    "Network Cables Connectors"
+  ],
+  "445f99a67ce6468d": [
+    "Firewall Configuration",
+    "Access Control Lists",
+    "Data Encryption Basics",
+    "Intrusion Detection Systems",
+    "Vulnerability Management Fundamentals"
+  ],
+  "9baf1001894cc9ed": [
+    "RF Propagation Fundamentals",
+    "Modulation Techniques",
+    "Multiple Access Methods",
+    "Wireless Network Protocols",
+    "Wireless Network Security"
+  ]
+}

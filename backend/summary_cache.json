@@ -1,22 +1,26 @@
 {
+  "graph-cycle-detection": {
+    "hash": "30a7a3436600b1646f6e375946e9c06615a530e10a9febe5c9e1ad4bee233994",
+    "summary": "Here's a summary of the captured content:\n\n*   The code snippet focuses on detecting cycles in a graph.\n*   The graph is represented using an adjacency matrix.\n*   A Depth-First Search (DFS) algorithm is utilized for traversing the graph.\n*   A `visited` array is initialized and used to keep track of visited nodes during the DFS traversal.\n*   The DFS function appears to take parameters such as the current node, its parent, the `visited` array, and the graph itself.\n*   The program first prompts for the number of vertices and then takes input for the adjacency matrix elements.\n*   Upon detection of a cycle, a message \"cycle exists in the graph\" is printed."
+  },
+  "regular-expression-validation": {
+    "hash": "3f4684c349b2c751f322875301491a5056ba1f3c58c7de72f2e34eb02ac901bf",
+    "summary": "Here's a summary of the captured content:\n\n*   **Purpose of Regex Validation:** Regular Expressions (Regex) ensure that captured text (manual or automatic) adheres to a predefined, official pattern.\n*   **Data Integrity:** This validation step is crucial before integrating data with backend services to maintain data quality and prevent errors.\n*   **Applications in Vehicle Management:** Regex is commonly used in various real-world systems related to vehicles.\n*   **Toll Plazas:** Validating captured license plates against patterns before checking Fastag databases.\n*   **Traffic Police Apps:** Ensuring correct vehicle number input by officers, preventing wrong searches against insurance or road tax databases.\n*   **Parking Systems:** Validating OCR results from ANPR cameras to match against registered user patterns.\n*   **Database Integration:** Regex can be integrated into database schemas using `CHECK` constraints (e.g., in SQL `CREATE TABLE`) to enforce pattern rules directly on data fields like `LicenseNo`."
+  },
+  "graph-cycle-detection-using-dfs": {
+    "hash": "30a7a3436600b1646f6e375946e9c06615a530e10a9febe5c9e1ad4bee233994",
+    "summary": "Here's a summary of the captured content:\n\n*   The program initializes a `visited` array to keep track of nodes encountered during graph traversal.\n*   It takes input for the number of vertices (`n`) and the graph's structure, likely represented by an adjacency matrix.\n*   A Depth First Search (DFS) function is called, passing parameters such as the current node, a parent node (indicated by `-1`), the `visited` array, the graph data, and the total number of vertices.\n*   The core logic involves checking the return value of the DFS function to determine the presence of a cycle.\n*   Upon completion of the cycle detection process, the program prints a message indicating whether a cycle exists in the graph."
+  },
+  "regulargrammarandcfgdated8thoct-1-protected-view-powerpoint": {
+    "hash": "ca024bcd687802e9eca5003ba14fe316a3fadb2f15ac58cb7003dc2de9e1e84e",
+    "summary": "[RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint] 6 Regular Expression Applications 1 Text Search & Pattern Matching [e) Regular expressions (regex) used in editors, search engines, IDEs. [e) Example: Finding phone numbers, emails, dates in a document. Lexical Analysis in Compilers [e) Tokenization of keywords (if, else, while), identifiers, numbers, operators [e) Example: int count = 18; — split into tokens using regex. Input Validation fe Validating license plates, zip codes,…"
+  },
   "detected-topic": {
-    "hash": "fcdba7c5f449aec333211bfe10999a87a1557160c4c70edcae4dc9849b833af0",
-    "summary": "[Active window] Humans are 99.9% similar to the person sitting next to us. The rest of those genes tell us everything from our eye color to whether we're predisposed to certain diseases. The genetic similarity between a human and a human is: 99.9% Key Molecules of Life Proteins and Amino Acids: Proteins are large (macro) molecules continuously manufactured by the cells and the instructions to produce them are stored in the DNA. Sequence of three RNA nucleotides are called codons that corresponds…"
+    "hash": "d2a8a1ecc0ef362e9d7217903f184880d02eb6e6fea4e97f25ed6dcc39e6c21e",
+    "summary": "Here's a summary of the captured content:\n\n*   **Network Topologies**: Explore different ways computer networks can be arranged, such as Star, Bus, Ring, Mesh, and Ad hoc topologies.\n*   **Network Classification**: Understand how computer networks are categorized based on various characteristics.\n*   **Campus Area Network (CAN)**: Learn about this specific type of network that connects LANs within a limited geographic area.\n*   **Networking Devices**: Differentiate between essential networking hardware like Hubs, Switches, and Routers."
   },
-  "frontend-original-profile-mozilla-firefox": {
-    "hash": "a34d35012c2c03cf192603713e4623caf191869fc2999cf8f152d5d9fe5b963c",
-    "summary": "[frontend — Original profile — Mozilla Firefox] TMT AAQSET AL NA art VUYOUL Detector Running Click to shutdown and stop screen reading Status Detection Time Running 00:00:24"
-  },
-  "isc-211-introduction-to-bioinformatics-lecture-2-molecular-biology-pdf-original-profile-mozilla-firefox": {
-    "hash": "65b4e78239e9625bf3c639fb85f1fbe0dbd0ca9c6bce36b46f0cfbed2cebdef0",
-    "summary": "[ISC 211 Introduction to Bioinformatics - Lecture 2-Molecular Biology.pdf — Original profile — Mozilla Firefox] C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE Molecular Biology- Essentials ® Molecular biology is the branch of biology that studi…"
-  },
-  "molecular-biology-fundamentals": {
-    "hash": "74b9f60db638ab1ae6c1269e363f5e106017291ec05859ca5fe8f81195fb8120",
-    "summary": "Here's a summary of the captured content:\n\n*   Molecular biology involves analyzing various types of data generated from cells.\n*   Key data types include DNA sequences, RNA sequences, and protein sequences.\n*   Microarray images represent another important type of data in molecular biology.\n*   DNA, RNA, and protein sequences are essentially text data (strings).\n*   These sequence data can be viewed and opened using a standard text editor.\n*   Microarray data, unlike sequences, are digital images."
-  },
-  "molecular-biology": {
-    "hash": "05040e3c85ca0002a195b2e248e21400e2e219c50178086a1f9a4940384fe83c",
-    "summary": "Here's a summary of the key concepts from the lecture content:\n\n*   **Eukaryotes** are complex organisms (e.g., humans, trees), while **Prokaryotes** are simpler life forms (e.g., bacteria).\n*   All living organisms are composed of **cells**, the fundamental unit of life.\n*   The three **key molecules of life** are DNA, RNA, and Proteins.\n*   In eukaryotic cells, **DNA** is housed within the **nucleus** and packaged into structures called **chromosomes**.\n*   DNA is a **double-stranded** molecule that serves to store genetic information.\n*   It is constructed from four types of **nucleotides**: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).\n*   **RNA** is a **single-stranded** molecule, distinct from DNA."
+  "computer-networking": {
+    "hash": "4cf9e98726b212640da0a3906c3f155e6025d6d96a1c29b5ada841db7353820a",
+    "summary": "Here's a summary of the captured content:\n\n*   Explores various types of computer networks, including LAN, WAN, PAN, CAN, MAN, SAN, and WLAN.\n*   Covers different network topologies such as Star, Bus, Ring, Mesh, and Ad hoc.\n*   Defines a Campus Area Network (CAN) as a network that connects two or more LANs together within a limited area.\n*   Compares and explains the functions of key networking devices: Hubs, Switches, and Routers."
   }
 }

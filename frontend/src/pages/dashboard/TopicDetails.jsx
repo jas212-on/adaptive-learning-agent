@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, FileText, Route } from 'lucide-react'
+import { ArrowLeft, FileText, Route, Network } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
@@ -118,7 +118,7 @@ export default function TopicDetails() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {tabs.map((t) => (
               <NavLink
                 key={t.to}
@@ -134,6 +134,13 @@ export default function TopicDetails() {
                 {t.label}
               </NavLink>
             ))}
+            <Link
+              to={`/dashboard/dependency-graph?topic=${topicId}`}
+              className="inline-flex items-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20"
+            >
+              <Network size={16} />
+              View Graph
+            </Link>
           </div>
 
           <div className="mt-4">

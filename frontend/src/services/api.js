@@ -354,22 +354,29 @@ export async function validateTimetableInputs(params) {
   })
 }
 
-export async function getConceptGraph(topicId) {
-  await sleep(650)
-  return {
-    topicId,
-    nodes: [
-      { id: 'prereq-1', label: 'Prerequisite A', kind: 'prereq' },
-      { id: 'prereq-2', label: 'Prerequisite B', kind: 'prereq' },
-      { id: 'core', label: 'Core Concept', kind: 'core' },
-      { id: 'next-1', label: 'Next Topic 1', kind: 'next' },
-      { id: 'next-2', label: 'Next Topic 2', kind: 'next' },
-    ],
-    edges: [
-      { from: 'prereq-1', to: 'core' },
-      { from: 'prereq-2', to: 'core' },
-      { from: 'core', to: 'next-1' },
-      { from: 'core', to: 'next-2' },
-    ],
-  }
+/**
+ * Fetch concept dependency graph for a topic.
+ * 
+ * @param {string} topicId - The topic ID to build graph for
+ * @param {Object} options - Optional parameters
+ * @param {number} options.maxDepth - Max depth of subtopic expansion (0-2, default 2)
+ * @param {number} options.maxChildren - Max children per node (1-10, default 5)
+ * @param {boolean} options.useGemini - Use Gemini for expansion (default true)
+ * @returns {Promise<{nodes: Array, edges: Array, rootId: string, maxDepth: number}>}
+ */
+export async function getConceptGraph(topicId, options = {}) {
+  const {
+    maxDepth = 2,
+    maxChildren = 5,
+    useGemini = true,
+  } = options
+
+  const params = new URLSearchParams({
+    max_depth: maxDepth.toString(),
+    max_children: maxChildren.toString(),
+    use_gemini: useGemini.toString(),
+  })
+
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/graph?${params}`)
 }
+

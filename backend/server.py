@@ -3,7 +3,7 @@ import re
 import hashlib
 import json
 import threading
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 import sys
@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from typing import Any
 
 from urllib.parse import urlparse
+from graph.builder import build_concept_graph, graph_to_legacy_format
 
 
 class AskRequest(BaseModel):
@@ -899,5 +900,51 @@ def detector_topic_resources(
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/detector/topics/{topic_id}/graph")
+def detector_topic_graph(
+    topic_id: str,
+    max_depth: int = Query(2, ge=0, le=2, description="Maximum depth of subtopic expansion (0-2)"),
+    max_children: int = Query(5, ge=1, le=10, description="Maximum children per node"),
+    use_gemini: bool = Query(True, description="Use Gemini AI for subtopic expansion when needed"),
+):
+    """
+    Build a concept dependency graph for a detected topic.
+    
+    The graph shows the topic hierarchy with subtopics expanded up to max_depth levels.
+    Uses detected concepts from OCR when available, falls back to Gemini AI expansion.
+    
+    Returns:
+        {
+            "nodes": [{"id", "label", "kind", "depth", "parentId"}],
+            "edges": [{"from", "to", "relation"}],
+            "rootId": str,
+            "maxDepth": int
+        }
+    """
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    
+    target_topic = None
+    for t in topics:
+        if t.id == topic_id:
+            target_topic = t
+            break
+    
+    if not target_topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+    
+    # Build the concept graph
+    graph = build_concept_graph(
+        topic_id=target_topic.id,
+        topic_title=target_topic.title,
+        detected_concepts=target_topic.detectedConcepts,
+        max_depth=max_depth,
+        max_children=max_children,
+        use_gemini_fallback=use_gemini,
+    )
+    
+    return graph_to_legacy_format(graph)
 
 
