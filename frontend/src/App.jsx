@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import Detection from './pages/Detection'
 import NotFound from './pages/NotFound'
 
 import DashboardHome from './pages/dashboard/DashboardHome'
@@ -18,10 +19,12 @@ import DependencyGraph from './pages/dashboard/DependencyGraph'
 
 import DetectedInfo from './pages/dashboard/topic/DetectedInfo'
 import Explainer from './pages/dashboard/topic/Explainer'
-import Roadmap from './pages/dashboard/topic/Roadmap'
 import Resources from './pages/dashboard/topic/Resources'
 import Questions from './pages/dashboard/topic/Questions'
 import Quiz from './pages/dashboard/topic/Quiz'
+
+import RoadmapIndex from './pages/dashboard/topic/RoadmapIndex'
+import RoadmapModule from './pages/dashboard/topic/RoadmapModule'
 
 export default function App() {
   return (
@@ -31,6 +34,15 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Route>
+
+      <Route
+        path="/detection"
+        element={
+          <ProtectedRoute>
+            <Detection />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/dashboard"
@@ -50,11 +62,14 @@ export default function App() {
         <Route path="topics/:topicId" element={<TopicDetails />}>
           <Route index element={<Navigate to="detected" replace />} />
           <Route path="detected" element={<DetectedInfo />} />
-          <Route path="explainer" element={<Explainer />} />
-          <Route path="roadmap" element={<Roadmap />} />
-          <Route path="resources" element={<Resources />} />
-          <Route path="questions" element={<Questions />} />
-          <Route path="quiz" element={<Quiz />} />
+          <Route path="roadmap" element={<RoadmapIndex />} />
+          <Route path="roadmap/:moduleId" element={<RoadmapModule />}>
+            <Route index element={<Navigate to="explainer" replace />} />
+            <Route path="explainer" element={<Explainer />} />
+            <Route path="resources" element={<Resources />} />
+            <Route path="questions" element={<Questions />} />
+            <Route path="quiz" element={<Quiz />} />
+          </Route>
         </Route>
       </Route>
 

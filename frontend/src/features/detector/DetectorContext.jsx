@@ -5,7 +5,7 @@ const DetectorContext = createContext(null)
 
 export function DetectorProvider({ children }) {
   const [running, setRunning] = useState(false)
-  const [runId, setRunId] = useState(null)
+  const [startedAt, setStartedAt] = useState(null)
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -23,7 +23,7 @@ export function DetectorProvider({ children }) {
       // prevent out-of-order resolves
       if (lastStartRef.current !== startToken) return
       setRunning(true)
-      setRunId(res.runId)
+      setStartedAt(Date.now())
       setTopics(res.topics)
     } catch (err) {
       setError(err?.message || 'Failed to start detection')
@@ -38,6 +38,7 @@ export function DetectorProvider({ children }) {
     try {
       await api.stopDetection()
       setRunning(false)
+      setStartedAt(null)
     } catch (err) {
       setError(err?.message || 'Failed to stop detection')
     } finally {
@@ -59,8 +60,8 @@ export function DetectorProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ running, runId, topics, loading, error, start, stop, refreshTopics }),
-    [running, runId, topics, loading, error, start, stop, refreshTopics],
+    () => ({ running, startedAt, topics, loading, error, start, stop, refreshTopics }),
+    [running, startedAt, topics, loading, error, start, stop, refreshTopics],
   )
 
   return <DetectorContext.Provider value={value}>{children}</DetectorContext.Provider>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Compass, FileText, GraduationCap, ListChecks, Route } from 'lucide-react'
+import { ArrowLeft, FileText, Route } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
@@ -15,12 +15,8 @@ function levelVariant(level) {
 }
 
 const tabs = [
-  { to: 'detected', label: 'Detected info', icon: FileText },
-  { to: 'explainer', label: 'Topic explainer', icon: BookOpen },
+  { to: 'detected', label: 'Detected topic', icon: FileText },
   { to: 'roadmap', label: 'Roadmap', icon: Route },
-  { to: 'resources', label: 'Resources', icon: Compass },
-  { to: 'questions', label: 'Questions', icon: ListChecks },
-  { to: 'quiz', label: 'Quiz', icon: GraduationCap },
 ]
 
 export default function TopicDetails() {
@@ -105,7 +101,9 @@ export default function TopicDetails() {
         <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <CardTitle className="truncate">{topic.title}</CardTitle>
-            <div className="mt-1 text-sm text-fg-muted">Detected concepts and learning tools for mastery.</div>
+            <div className="mt-1 text-sm text-fg-muted">
+              Two views: what was detected, and a module roadmap to master it.
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {(topic.tags || []).map((t) => (

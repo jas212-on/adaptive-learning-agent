@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
-import { Play, RefreshCw, Square } from 'lucide-react'
+import { useEffect } from 'react'
+import { ArrowRight, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
@@ -7,36 +8,28 @@ import { useDetector } from '../../features/detector/DetectorContext'
 import { TopicCard } from '../../features/detector/TopicCard'
 
 export default function DashboardHome() {
-  const { running, runId, topics, loading, error, start, stop, refreshTopics } = useDetector()
+  const { topics, loading, error, refreshTopics } = useDetector()
 
-  const title = useMemo(() => {
-    if (running) return 'Detector is running'
-    return 'Detector is stopped'
-  }, [running])
+  useEffect(() => {
+    if (topics.length === 0) refreshTopics()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="text-xl font-semibold">{title}</div>
-          <div className="text-sm text-fg-muted">
-            {runId ? `Run: ${runId}` : 'Start detection to capture topics from the user screen.'}
-          </div>
+          <div className="text-xl font-semibold">Dashboard</div>
+          <div className="text-sm text-fg-muted">Detected topics and learning progress.</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {!running ? (
-            <Button onClick={start} disabled={loading}>
-              {loading ? <Spinner /> : <Play size={18} />}
-              Start detection
+          <Link to="/detection">
+            <Button>
+              Go to Detection
+              <ArrowRight size={18} />
             </Button>
-          ) : (
-            <Button variant="danger" onClick={stop} disabled={loading}>
-              {loading ? <Spinner /> : <Square size={18} />}
-              Stop
-            </Button>
-          )}
-
+          </Link>
           <Button variant="secondary" onClick={refreshTopics} disabled={loading}>
             {loading ? <Spinner /> : <RefreshCw size={18} />}
             Refresh
@@ -46,49 +39,22 @@ export default function DashboardHome() {
 
       {error ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</div> : null}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Detected topics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {topics.length === 0 ? (
-              <div className="text-sm text-fg-muted">No topics detected yet.</div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {topics.map((t) => (
-                  <TopicCard key={t.id} topic={t} />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Suggestion window</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="text-sm text-fg-muted">
-              This panel will be fed by the agent (for now: placeholder suggestions).
+      <Card>
+        <CardHeader>
+          <CardTitle>Detected topics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {topics.length === 0 ? (
+            <div className="text-sm text-fg-muted">No topics detected yet. Start the detector from the Detection page.</div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {topics.map((t) => (
+                <TopicCard key={t.id} topic={t} />
+              ))}
             </div>
-            <div className="space-y-2">
-              <div className="rounded-xl border bg-bg-muted p-3">
-                <div className="text-sm font-medium">Reinforce prerequisites</div>
-                <div className="text-xs text-fg-muted">Cover basics connected to today’s topics.</div>
-              </div>
-              <div className="rounded-xl border bg-bg-muted p-3">
-                <div className="text-sm font-medium">Do a quick quiz</div>
-                <div className="text-xs text-fg-muted">Identify weak areas and prioritize them.</div>
-              </div>
-              <div className="rounded-xl border bg-bg-muted p-3">
-                <div className="text-sm font-medium">Generate a roadmap</div>
-                <div className="text-xs text-fg-muted">Step-by-step mastery plan per topic.</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

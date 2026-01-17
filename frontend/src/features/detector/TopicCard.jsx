@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Brain, ChevronRight } from 'lucide-react'
+import { Brain } from 'lucide-react'
 import { Badge } from '../../components/ui/Badge'
 import { Card } from '../../components/ui/Card'
 
@@ -12,8 +12,9 @@ function levelVariant(level) {
 
 export function TopicCard({ topic }) {
   return (
-    <Card className="overflow-hidden">
-      <div className="flex items-start gap-4 p-5">
+    <Link to={`/dashboard/topics/${topic.id}`} className="block">
+      <Card className="overflow-hidden transition hover:bg-bg-muted/50">
+        <div className="flex items-start gap-4 p-5">
         <div className="mt-1 grid h-10 w-10 place-items-center rounded-xl bg-primary/15">
           <Brain size={18} />
         </div>
@@ -36,17 +37,9 @@ export function TopicCard({ topic }) {
               </Badge>
             ))}
           </div>
-
-          <div className="mt-4">
-            <Link
-              to={`/dashboard/topics/${topic.id}`}
-              className="inline-flex items-center gap-2 text-sm font-medium text-fg hover:underline"
-            >
-              View details <ChevronRight size={16} />
-            </Link>
-          </div>
         </div>
-      </div>
-    </Card>
+        </div>
+      </Card>
+    </Link>
   )
 }

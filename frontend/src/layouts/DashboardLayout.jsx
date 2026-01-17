@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LogOut,
   Network,
+  Scan,
   Sparkles,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
@@ -15,11 +16,12 @@ import { Button } from '../components/ui/Button'
 
 const nav = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/detection', label: 'Detection', icon: Scan },
   { to: '/dashboard/analytics', label: 'Analytics', icon: Activity },
-  { to: '/dashboard/suggestions', label: 'Suggestions', icon: Sparkles },
   { to: '/dashboard/timetable', label: 'Exam Timetable', icon: CalendarDays },
   { to: '/dashboard/dependency-graph', label: 'Concept Graph', icon: Network },
   { to: '/dashboard/topics', label: 'Topics', icon: Brain },
+  { to: '/dashboard/suggestions', label: 'Suggestions', icon: Sparkles },
 ]
 
 export function DashboardLayout() {
@@ -90,12 +92,7 @@ export function DashboardLayout() {
                 </Button>
               </div>
               <div className="hidden md:block" />
-              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" onClick={() => navigate('/dashboard/suggestions')}>
-                  <Sparkles size={18} />
-                  Agent Suggestions
-                </Button>
-              </div>
+              <div className="hidden md:block" />
             </div>
           </header>
 

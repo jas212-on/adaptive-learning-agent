@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 import { useAuth } from '../providers/AuthProvider'
 import { Button } from '../components/ui/Button'
@@ -10,8 +10,6 @@ import { Spinner } from '../components/ui/Spinner'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const redirectTo = useMemo(() => location.state?.from || '/dashboard', [location.state])
 
   const [email, setEmail] = useState('demo@adaptive.ai')
   const [password, setPassword] = useState('password')
@@ -24,7 +22,7 @@ export default function Login() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate(redirectTo)
+      navigate('/detection')
     } catch (err) {
       setError(err?.message || 'Login failed')
     } finally {
