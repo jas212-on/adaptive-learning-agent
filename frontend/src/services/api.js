@@ -278,15 +278,76 @@ export async function getSuggestions() {
   }
 }
 
-export async function generateTimetable({ syllabusLines, days }) {
-  await sleep(700)
-  const topics = syllabusLines.filter(Boolean)
-  const nDays = Math.max(1, Number(days) || 1)
-  const plan = Array.from({ length: nDays }, (_, i) => ({ day: i + 1, items: [] }))
-  topics.forEach((t, idx) => {
-    plan[idx % nDays].items.push({ topic: t, task: 'Study + 10 practice questions' })
+/**
+ * Generate a study timetable using the constraint-based scheduler.
+ * 
+ * @param {Object} params - Timetable generation parameters
+ * @param {Array} params.events - Fixed events (exams, assignments, deadlines)
+ * @param {Object} params.availability - Daily availability settings
+ * @param {Object} params.preferences - Study preferences
+ * @param {Array} params.topics - Learning topics
+ * @param {string} [params.currentDate] - Start date (ISO format)
+ * @returns {Promise<Object>} Generated timetable
+ */
+export async function generateTimetable({
+  events = [],
+  availability = {},
+  preferences = {},
+  topics = [],
+  currentDate = null,
+}) {
+  return apiFetch('/timetable/generate', {
+    method: 'POST',
+    body: {
+      events,
+      availability: {
+        weekday_hours: availability.weekdayHours ?? 4,
+        weekend_hours: availability.weekendHours ?? 6,
+        start_time: availability.startTime ?? '09:00',
+        end_time: availability.endTime ?? '21:00',
+        excluded_dates: availability.excludedDates ?? [],
+      },
+      preferences: {
+        session_length_minutes: preferences.sessionLengthMinutes ?? 45,
+        break_length_minutes: preferences.breakLengthMinutes ?? 15,
+        max_sessions_per_day: preferences.maxSessionsPerDay ?? 6,
+        max_subjects_per_day: preferences.maxSubjectsPerDay ?? 3,
+        buffer_percentage: preferences.bufferPercentage ?? 0.15,
+        prefer_morning: preferences.preferMorning ?? true,
+      },
+      topics: topics.map((t) => ({
+        id: t.id,
+        subject: t.subject,
+        topic: t.topic || t.name || t.title,
+        difficulty_score: t.difficultyScore ?? t.difficulty ?? 0.5,
+        confidence_score: t.confidenceScore ?? t.confidence ?? 0.5,
+        prerequisites: t.prerequisites ?? [],
+        estimated_hours: t.estimatedHours ?? 2,
+        is_concept_heavy: t.isConceptHeavy ?? false,
+      })),
+      current_date: currentDate,
+    },
   })
-  return { days: nDays, plan }
+}
+
+/**
+ * Get a sample timetable for demonstration.
+ * @returns {Promise<Object>} Sample timetable
+ */
+export async function getSampleTimetable() {
+  return apiFetch('/timetable/sample')
+}
+
+/**
+ * Validate timetable inputs without generating.
+ * @param {Object} params - Same as generateTimetable
+ * @returns {Promise<Object>} Validation result
+ */
+export async function validateTimetableInputs(params) {
+  return apiFetch('/timetable/validate', {
+    method: 'POST',
+    body: params,
+  })
 }
 
 export async function getConceptGraph(topicId) {
