@@ -1,1 +1,18 @@
-{}
+{
+  "detected-topic": {
+    "hash": "fcdba7c5f449aec333211bfe10999a87a1557160c4c70edcae4dc9849b833af0",
+    "summary": "[Active window] Humans are 99.9% similar to the person sitting next to us. The rest of those genes tell us everything from our eye color to whether we're predisposed to certain diseases. The genetic similarity between a human and a human is: 99.9% Key Molecules of Life Proteins and Amino Acids: Proteins are large (macro) molecules continuously manufactured by the cells and the instructions to produce them are stored in the DNA. Sequence of three RNA nucleotides are called codons that corresponds…"
+  },
+  "frontend-original-profile-mozilla-firefox": {
+    "hash": "a34d35012c2c03cf192603713e4623caf191869fc2999cf8f152d5d9fe5b963c",
+    "summary": "[frontend — Original profile — Mozilla Firefox] TMT AAQSET AL NA art VUYOUL Detector Running Click to shutdown and stop screen reading Status Detection Time Running 00:00:24"
+  },
+  "isc-211-introduction-to-bioinformatics-lecture-2-molecular-biology-pdf-original-profile-mozilla-firefox": {
+    "hash": "65b4e78239e9625bf3c639fb85f1fbe0dbd0ca9c6bce36b46f0cfbed2cebdef0",
+    "summary": "[ISC 211 Introduction to Bioinformatics - Lecture 2-Molecular Biology.pdf — Original profile — Mozilla Firefox] C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE C 211 Introduction to oinformatics Lecture 2 — Molecular Biology Essentials Dr. Athira B mtacemr (CE Molecular Biology- Essentials ® Molecular biology is the branch of biology that studi…"
+  },
+  "molecular-biology-fundamentals": {
+    "hash": "74b9f60db638ab1ae6c1269e363f5e106017291ec05859ca5fe8f81195fb8120",
+    "summary": "Here's a summary of the captured content:\n\n*   Molecular biology involves analyzing various types of data generated from cells.\n*   Key data types include DNA sequences, RNA sequences, and protein sequences.\n*   Microarray images represent another important type of data in molecular biology.\n*   DNA, RNA, and protein sequences are essentially text data (strings).\n*   These sequence data can be viewed and opened using a standard text editor.\n*   Microarray data, unlike sequences, are digital images."
+  }
+}

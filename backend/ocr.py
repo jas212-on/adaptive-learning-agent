@@ -277,12 +277,12 @@ def finalize_window_capture(entries, window_title, captured_text, started_at, en
     summary = send_text_to_server(captured_text, window_title)
 
     entry = {
-        "window_title": window_title,
+        "title": window_title,
         "started_at": started_at,
         "ended_at": ended_at,
         "is_educational": is_educational,
         "ocr_text": captured_text,
-        "summary": summary
+        "server": summary
     }
     entries.append(entry)
     write_output(entries)

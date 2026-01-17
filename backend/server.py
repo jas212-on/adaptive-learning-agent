@@ -59,8 +59,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Include timetable router
-from timetable.routes import router as timetable_router
+# Include timetable router (works from both repo root and backend/ cwd)
+try:
+    from timetable.routes import router as timetable_router
+except ModuleNotFoundError:
+    from backend.timetable.routes import router as timetable_router
+
 app.include_router(timetable_router)
 
 
@@ -164,6 +168,8 @@ def _entries_for_topic(entries: list[dict[str, Any]], topic_id: str) -> list[dic
             continue
 
         server_resp = e.get("server_response")
+        if not isinstance(server_resp, dict):
+            server_resp = e.get("server")
         topic = ""
         if isinstance(server_resp, dict):
             topic = (server_resp.get("topic") or "").strip() or (server_resp.get("response") or "").strip()
@@ -245,7 +251,8 @@ def get_topic_summary(topic_id: str, topic_title: str, entries: list[dict[str, A
 
 def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTopic]:
     # Expected capture entry shape (from ocr.py):
-    # {"title": <window title>, "ocr_text": <text>, "server_response": {"topic": ...} }
+    # {"title": <window title>, "ocr_text": <text>, "server": {"topic": ..., "subtopics": [...] } }
+    # Back-compat: some runs used "server_response" instead of "server".
     # There may also be summary entries: {"window_title": ..., "time_spent_sec": ...}
     by_topic: dict[str, DetectedTopic] = {}
     subtopic_keys: dict[str, set[str]] = {}
@@ -276,6 +283,8 @@ def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTo
             continue
 
         server_resp = e.get("server_response")
+        if not isinstance(server_resp, dict):
+            server_resp = e.get("server")
         topic = ""
         if isinstance(server_resp, dict):
             topic = (server_resp.get("topic") or "").strip() or (server_resp.get("response") or "").strip()
