@@ -1,5 +1,7 @@
 from pathlib import Path
 import re
+import hashlib
+import json
 import threading
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -84,6 +86,7 @@ class DetectedTopic(BaseModel):
     detectedAt: str | None = None
     snippets: list[DetectorSnippet] = []
     detectedConcepts: list[dict[str, Any]] = []
+    summary: str | None = None
 
 
 def _read_output_entries() -> list[dict[str, Any]]:
@@ -100,6 +103,138 @@ def _read_output_entries() -> list[dict[str, Any]]:
         return []
     except Exception:
         return []
+
+
+_summary_lock = threading.Lock()
+_summary_cache: dict[str, dict[str, str]] | None = None
+
+
+def _summary_cache_path() -> Path:
+    return _backend_dir() / "summary_cache.json"
+
+
+def _load_summary_cache() -> dict[str, dict[str, str]]:
+    global _summary_cache
+    with _summary_lock:
+        if _summary_cache is not None:
+            return _summary_cache
+
+        path = _summary_cache_path()
+        if not path.exists():
+            _summary_cache = {}
+            return _summary_cache
+
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                # { topic_id: { "hash": "...", "summary": "..." } }
+                _summary_cache = {
+                    k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, dict)
+                }
+            else:
+                _summary_cache = {}
+        except Exception:
+            _summary_cache = {}
+
+        return _summary_cache
+
+
+def _save_summary_cache(cache: dict[str, dict[str, str]]) -> None:
+    path = _summary_cache_path()
+    try:
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(cache, f, indent=2, ensure_ascii=False)
+    except Exception:
+        # Cache is best-effort; ignore write failures.
+        pass
+
+
+def _entries_for_topic(entries: list[dict[str, Any]], topic_id: str) -> list[dict[str, Any]]:
+    out = []
+    for e in entries:
+        ocr_text = (e.get("ocr_text") or "").strip()
+        if not ocr_text:
+            continue
+
+        server_resp = e.get("server_response")
+        topic = ""
+        if isinstance(server_resp, dict):
+            topic = (server_resp.get("topic") or "").strip() or (server_resp.get("response") or "").strip()
+        if not topic:
+            topic = (e.get("title") or "").strip() or "Detected topic"
+
+        if _slugify(topic) == topic_id:
+            out.append(e)
+    return out
+
+
+def _build_summary_input(entries: list[dict[str, Any]]) -> str:
+    # Build a compact prompt input: include window title + OCR text snippets.
+    chunks: list[str] = []
+    for e in entries[-12:]:
+        title = (e.get("title") or "").strip() or "Active window"
+        text = (e.get("ocr_text") or "").strip()
+        if not text:
+            continue
+        text = re.sub(r"\s+", " ", text)
+        if len(text) > 900:
+            text = text[:900].rstrip() + "…"
+        chunks.append(f"[{title}] {text}")
+
+    combined = "\n".join(chunks).strip()
+    # Hard cap to keep requests cheap.
+    if len(combined) > 6000:
+        combined = combined[-6000:]
+    return combined
+
+
+def _summarize_captured_content(topic_title: str, captured: str) -> str:
+    if not captured.strip():
+        return "No captured content yet."
+
+    prompt = (
+        "You are an assistant inside an adaptive learning app.\n"
+        "Summarize the captured on-screen content for the learner.\n"
+        "- Output a concise summary in 4-8 bullet points\n"
+        "- Focus on the educational/technical concepts\n"
+        "- Ignore navigation/UI noise and repeated text\n"
+        "- Do not include any sensitive/personal data\n\n"
+        f"Detected topic: {topic_title}\n\n"
+        "Captured content:\n"
+        f"{captured}\n"
+    )
+
+    try:
+        return ask_gemini(prompt).strip() or "(Empty summary)"
+    except Exception:
+        # Fallback: lightweight local summary (first lines)
+        return captured[:500].rstrip() + ("…" if len(captured) > 500 else "")
+
+
+def get_topic_summary(topic_id: str, topic_title: str, entries: list[dict[str, Any]]) -> str | None:
+    topic_entries = _entries_for_topic(entries, topic_id)
+    captured = _build_summary_input(topic_entries)
+    if not captured:
+        return None
+
+    content_hash = hashlib.sha256(captured.encode("utf-8", errors="ignore")).hexdigest()
+    cache = _load_summary_cache()
+
+    with _summary_lock:
+        existing = cache.get(topic_id)
+        if isinstance(existing, dict) and existing.get("hash") == content_hash:
+            summary = existing.get("summary")
+            if isinstance(summary, str) and summary.strip():
+                return summary
+
+    summary = _summarize_captured_content(topic_title, captured)
+
+    with _summary_lock:
+        cache[topic_id] = {"hash": content_hash, "summary": summary}
+        _save_summary_cache(cache)
+
+    return summary
 
 
 def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTopic]:
@@ -362,6 +497,7 @@ def detector_topic(topic_id: str):
     topics = _build_topics_from_entries(entries)
     for t in topics:
         if t.id == topic_id:
+            t.summary = get_topic_summary(t.id, t.title, entries)
             return t
     raise HTTPException(status_code=404, detail="Topic not found")
 

@@ -172,11 +172,7 @@ export async function getTopic(topicId) {
     if (!topic) throw new Error('Topic not found')
     return {
       ...topic,
-      detectedConcepts: [
-        { label: 'Dependency arrays', score: 0.82 },
-        { label: 'Side effects', score: 0.76 },
-        { label: 'Stale closures', score: 0.62 },
-      ],
+      detectedConcepts: [],
     }
   }
 }
