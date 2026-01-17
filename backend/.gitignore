@@ -1,1 +1,117 @@
+# Backend (.gitignore)
+# This repo's backend appears Python-based, but this file also ignores common artifacts
+# for Node/Java backends in case you add them later.
+
+# --- Secrets / environment ---
 .env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.jks
+*.keystore
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+.cache/
+
+# Coverage / reports
+.coverage
+coverage.xml
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# --- Logs / runtime ---
+*.log
+logs/
+
+# PID / lock / runtime state
+*.pid
+*.pid.lock
+*.seed
+
+# Local runtime files
+stop.flag
+
+# --- Local data / outputs (customize as needed) ---
+# If you want to version sample outputs, move them under a dedicated folder and unignore.
+output.json
+*.sqlite
+*.sqlite3
+*.db
+
+# Captures can get big; ignore by default.
+# If you want to commit small samples, remove this and add an explicit include list.
+captures/
+
+# --- Node.js (if you add a Node backend later) ---
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Java (if you add Spring later) ---
+# Maven
+/target/
+# Gradle
+/build/
+.gradle/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+.idea/
+*.iml
+
+# --- Terraform / IaC (if added later) ---
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# --- Docker (optional local overrides) ---
+.dockerignore
+
+# --- Misc ---
+*.swp
+*.swo
+*~
