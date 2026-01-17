@@ -1,5 +1,32 @@
 // Mock API layer. Replace these with real endpoints later.
 
+const API_BASE = import.meta?.env?.VITE_API_BASE_URL || '/api'
+
+async function apiFetch(path, { method = 'GET', body, headers } = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const data = await res.json()
+      detail = data?.detail ? String(data.detail) : ''
+    } catch {
+      // ignore
+    }
+    throw new Error(detail || `API request failed: ${res.status} ${res.statusText}`)
+  }
+
+  // FastAPI returns JSON for our endpoints
+  return res.json()
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -90,38 +117,67 @@ export async function signup({ name, email }) {
 }
 
 export async function startDetection() {
-  await sleep(1200)
-  // In real backend: POST /detector/start
-  return {
-    runId: uid('run'),
-    topics: MOCK_TOPICS,
+  // Real backend: POST /detector/start (proxied as /api/detector/start)
+  try {
+    await apiFetch('/detector/start', { method: 'POST' })
+    const topics = await apiFetch('/detector/topics')
+    return { topics }
+  } catch (e) {
+    // Fallback to mock if backend isn't running yet
+    await sleep(600)
+    return { topics: MOCK_TOPICS }
   }
 }
 
 export async function stopDetection() {
-  await sleep(350)
-  // In real backend: POST /detector/stop
-  return { ok: true }
+  try {
+    await apiFetch('/detector/stop', { method: 'POST' })
+    return { ok: true }
+  } catch (e) {
+    await sleep(250)
+    return { ok: true }
+  }
+}
+
+export async function getDetectorStatus() {
+  try {
+    return await apiFetch('/detector/status')
+  } catch (e) {
+    return { running: false, exit_code: null }
+  }
 }
 
 export async function listDetectedTopics() {
-  await sleep(400)
-  // In real backend: GET /detector/topics
-  return MOCK_TOPICS
+  try {
+    return await apiFetch('/detector/topics')
+  } catch (e) {
+    await sleep(250)
+    return MOCK_TOPICS
+  }
 }
 
 export async function getTopic(topicId) {
-  await sleep(500)
-  const topic = MOCK_TOPICS.find((t) => t.id === topicId)
-  if (!topic) throw new Error('Topic not found')
-
-  return {
-    ...topic,
-    detectedConcepts: [
-      { label: 'Dependency arrays', score: 0.82 },
-      { label: 'Side effects', score: 0.76 },
-      { label: 'Stale closures', score: 0.62 },
-    ],
+  try {
+    const t = await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}`)
+    return {
+      ...t,
+      // Keep UI stable even if backend doesn't provide these yet
+      detectedConcepts: t.detectedConcepts || [],
+      tags: t.tags || [],
+      level: t.level || 'intermediate',
+    }
+  } catch (e) {
+    await sleep(300)
+    const topic = MOCK_TOPICS.find((t) => t.id === topicId)
+    if (!topic) throw new Error('Topic not found')
+    return {
+      ...topic,
+      detectedConcepts: [
+        { label: 'Dependency arrays', score: 0.82 },
+        { label: 'Side effects', score: 0.76 },
+        { label: 'Stale closures', score: 0.62 },
+      ],
+    }
   }
 }
 

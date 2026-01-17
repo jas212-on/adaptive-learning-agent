@@ -1,38 +1,81 @@
 [
     {
-        "title": "Adaptive Learning Agent API - Swagger UI - Google Chrome",
-        "ocr_text": "All\n\nTamil Cinema\n\nIndian Premier League\n\nTrailers\n\nMusic\n\nCricket\n\nLive Web series\n\nGaming\n\nNews Satire Impractical Jokers Malayalar. > |\n\ne\n\nwoot name wera\n\n’\n\nee\n\nae\n\nit’s INSANITY\n\nhow good this Al is.\n\nDara\n\nyaa\n\n@lasuliss via X 9 )\n\nTi\n\nKajari4\n\na\n\nRIUM ASHOKA | ROSHAN MATHENY | VISHAK HAIR\n\n[2:29\n\nThe\n\nPan bn\n\nISHAM SHOUAATH\n\n29:12\n\n=.\n\nRo\n\nWhat are students saying about\n\nRCB vs GG: Post Match Dressing Room Chat |\n\nCHATHA PACHA.....| ARJUN ASHOKAN |\n\nNotebookLM?\n\nWPL 2026 | Sweet Sound of Victory\n\nROSHAN MATHEW | VISAK NAIR | ISHAN ...\n\nSponsored - Google NotebookLM\n\nRoyal Challengers Bengaluru @\n\nHappy Frames\n\n12K views -« 1 hour ago\n\n2.3K views - 3 hours ago\n\nWatch\n\nShorts\n\npanos,\n\nADJ AFTER THE RELEASE\n\nVijay Sethupathi On Working\n\n69\n\nOF FANTASTIC\n\nVf\n\nWITH VETRIMAARAN\n\n| a |\n\n-)\n",
+        "title": "frontend - Google Chrome",
+        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:03\n",
         "server_response": {
-            "detail": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 50.645362085s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 50\n}\n]"
+            "topic": "Screen reading",
+            "confidence": null,
+            "raw": null
         }
     },
     {
-        "title": "Hugging Face – The AI community building the future. - Google Chrome",
-        "ocr_text": "Billing\n\nOverview\n\nInvoices\n\nPayment information\n\nPRO Subscription\n\n+ GetPRO to get up to ~10x more storage, compute and Hub rate limits.\n\nCredits ©\n\n$0.00 + Add\n\nStorage\n\nHub Rate Limits\n\nAutomatic Recharge ©\n\n-\n\nPrivate Repositories Storage\n\nView doc\n\nOBytes/100 GB @\n\nHub APIs ©\n\n2/ Ak requests\n\nCurrent period usage\n\n$0.00\n\nResolvers ©\n\n0/ Sk requests\n\nPublic Repositories Storage Besteffort\n\nOBytes\n\nEnds on\n\nPages ©\n\n1/200 requests\n\nFeb1\n\nCompute\n\nZeroGPU Browse Spaces\n\n0/4 minutes @\n\nInference Usage hh\n\n<$0.01/80.10 ©\n\n1\n\nRate limits are applied over\n\n5-minute intervals. Viewdoc\n\nmM Billinference usage to your organization\n\ncur\n\n1AN17.CER1\n\nCurrant nearing\n",
+        "title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
+        "ocr_text": "n; is) {\n\n[i] == 1) {\n\nsited[i]) {\n\n(DFS(i, v, visited, graph, n))\n\nreturn 13\n\nGi [= parent) {\n\nurn 13\n\nMAX], visited[Max] = {0};\n\number of vertices\n\n\"Ys\n\n3\n\ndjacency matrix:\\n\");\n\nn; ist)\n\nj<n; jy)\n\nwd\", &graph[i][5])\n\nn; is) {\n\nd[i]) {\n\n(i, -1, visited, graph, n)) {]\n\nntf(“cycle exists in the graph\\n\")};\n\n7”\n",
         "server_response": {
-            "detail": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 45.724105099s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 45\n}\n]"
+            "topic": "Graph cycle detection",
+            "confidence": null,
+            "raw": null
         }
     },
     {
-        "title": "Adaptive Learning Agent API - Swagger UI - Google Chrome",
-        "ocr_text": "31\n\napplication/json\n\nJan 2026 84:29:58 GMT\n\nLinks\n\nsponse\n\nNo links\n\nyn\n\nfer.\n\nchema\n\nStop\n\nfv\n\nobject\n",
+        "title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
+        "ocr_text": "dled\n\nie\n\npaienuy 1\n\nMAX], visited[Max] = {0};\n\number of vertices:\n\n\"Ys\n\n3\n\ndjacency matrix:\\n\") 5\n\nn; i+)\n\nji<n; jy)\n\nwd\", &graph(i][j])3\n\nn; ist) {\n\nd{i}) {\n\n(i, -1, visited, graph, n)) {]\n\nntf(“cycle exists in the graph\\n\");\n\nurn 3\n\ne in the graph\\n\");\n\n@ irontend - Google Chrome\n\n—\n\n-\n\n_\n\n_\n\nrd\n",
         "server_response": {
-            "detail": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 42.155543943s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 42\n}\n]"
+            "topic": "Cycle detection in graphs",
+            "confidence": null,
+            "raw": null
         }
     },
     {
-        "title": "Adaptive Learning Agent API - Swagger UI - Google Chrome",
-        "ocr_text": "31\n\napplication/json\n\nJan 2026 04:29:58 GMT\n\nLinks\n\nsponse\n\nNo links\n\nyn\n\nfer.\n\nchema\n\nee\n\nStop\n",
+        "title": "(244) Network Types: LAN, WAN, PAN, CAN, MAN, SAN, WLAN - YouTube - Google Chrome",
+        "ocr_text": "POWERCERT VIDEOS\n\nee\n\nAll\n\nFrom your search\n\nFrom the series\n\n¥\n\n>\n\nee\n\nNETWORK\n\nNetwork Topologies (Star, Bus,\n\n\\N CAMPUS AREA NETWORK\n\nTOPOLOGIES\n\nRing, Mesh, Ad hoe, ...\n\nee\n\nPowerCert Animated Videos @\n\na5\n\network that joins 2 or more LANs together\n\nba\n\noss\n\n1.2m views + 7 years ago\n\nEXPLAINED\n\nin a limited area.\n\nComputer Networks\n\n{Classification}\n\nClassification of Computer\n\n-\n\n.\n\nNetworks\n\nPom\n\nwh a\n\nPoets\n\nNeso Academy @\n\ncag\n\n717k views + 6 years ago\n\nSoftware\n\nHow to become a software\n\nEngineer ‘3\n\nengineer after 10th | 10th ke ...\n\nConglete Revenue\n\nAfter 10th?\n\nTechWithSky\n\n|\n\n|\n\n5 views + 1 hour ago\n\nC.\n\nNew\n\n|\n\nbe _|\n\nWIMATED\n\nHub, Switch, & Router Explained\n\nSWITCH\n\n- Whats the difference?\n\nPowerCert Animated Videos @\n\n¢\n\nPa.\n\nROUTE!\n\nBa\n\nLe _|\n\n7:22\n\n6.1m views « 8 years ago\n\nWHAT'S THE!\n\nLd\n\n=\n\n.\n\nGira Gira Gingiraagirey - Video\n\n4 =w_\n\nre\n\naainey\n\nSong | Champion | Roshan | ...\n\n=\n\nayy\n\nwt VIDEO SONG\n\nSony Music South @\n\n455\n\n‘CAN CAMPUS AREA NETW.\n\n>\n\n@\n\nAN\n\n1.5m views « 2 days ago\n\n515\n\nNew\n\nAL WIAA! MARI CARL BAAAL CARI Ul ABI\n\nLAN-WAN-SUBNET LAN WAN SURNET-\n",
         "server_response": {
-            "detail": "429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 39.192843244s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.5-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 20\n}\n, retry_delay {\n  seconds: 39\n}\n]"
+            "topic": "Network Types",
+            "confidence": null,
+            "raw": null
         }
     },
     {
-        "window_title": "Adaptive Learning Agent API - Swagger UI - Google Chrome",
-        "time_spent_sec": 12
+        "title": "(244) Gira Gira Gingiraagirey - Video Song | Champion | Roshan | Anaswara | Ram Miriyala | Mickey J Meyer - YouTube - Google Chrome",
+        "ocr_text": "4s\n\nwo\n\nay\n\nG\n\n= A\n\na hod\n\n~\n\nGrow online and offline\n\n‘Sign up\n\nwith Google Ads\n\n\"\n\n‘Sponaored - ads.google.com\n\nPy,\n\n=\n\nij\n\n“\n\n>\n\nwe\n\nFrom Sony Music South Mickey J Meyer\n\nVa\n\n<\n\n<e\n\nFai\n\nKaakum Vadivel\n\ntm 4)\n\nDharan Kumar - Topic\n\na\n\nrary\n\n4.5m views - 2 months ago\n\n,\n\na saz\n\nnl\n\n—I19\n\nwe\n\na\n\nEee\n\nMix — Premam Malare Video\n\ne\n\n‘Song | Rajesh Murug\n\nin | Vij...\n\na\n\nat\n\nview!\n\nMg\n\nVijay Yesudas, Thamarai, Keba Jeremiah\n\nMA\n\n> Mix f\n\n‘|\n\nNn SEA\n\ngr\n\nb, ¢\n\n~ Punya Nilaaven Ayyan | Madhu\n\nim\n\n< Balakrishnan | Nitheesh ...\n\n-o\n\nRY\n\nwes\n\nSaina Music @\n\nLt\n\n@\n\n1.2k views « 1 day ago\n\n2421\n\ner\n\n\"My Mix\n\ndenn Cann | Charmnitnn | Deeknn | Amnmmureen. | Dee\n\nIe|\n\na a Yn\n\nNandagovindam Bhajans. Vineeth Sree:\n",
+        "server_response": null
     },
     {
-        "window_title": "Hugging Face – The AI community building the future. - Google Chrome",
-        "time_spent_sec": 4
+        "title": "RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint",
+        "ocr_text": "It ensures that whatever text is captured (manual or automatic) matches the official pattern before\n\nintegrating with backend services like toll deduction, challan generation, or vehicle\n\ntracking.\n\ne\n\nToll plazas: Plate captured — Regex validation — Cross-check with Fastag\n\nDB.\n\nTraffic police app: Officer enters vehicle number — Regex validation\n\nensures no wrong input — Cross-check with insurance/PUC/road tax DB.\n\nParking systems: ANPR camera — OCR — Regex — Match against\n\nregistered users.\n\ne\n\nCREATE TABLE Vehicles (\n\nLicenseNo VARCHAR(15)\n\nCHECK il irancaNn ~ 'ATA_FISOUN_OVWOUA_714 DUN _alaAte'y\n",
+        "server_response": {
+            "topic": "Regex validation",
+            "confidence": null,
+            "raw": null
+        }
+    },
+    {
+        "title": "frontend - Google Chrome",
+        "ocr_text": "Detector Running\n\nClick to shutdown and stop screen reading\n\nStatus\n\nDetection Time\n\nRunning\n\n00:00:54\n",
+        "server_response": {
+            "topic": "Screen reading functionality",
+            "confidence": null,
+            "raw": null
+        }
+    },
+    {
+        "window_title": "frontend - Google Chrome",
+        "time_spent_sec": 7
+    },
+    {
+        "window_title": "dfc_cycle_det.c - VS Code - Visual Studio Code",
+        "time_spent_sec": 13
+    },
+    {
+        "window_title": "(244) Network Types: LAN, WAN, PAN, CAN, MAN, SAN, WLAN - YouTube - Google Chrome",
+        "time_spent_sec": 9
+    },
+    {
+        "window_title": "(244) Gira Gira Gingiraagirey - Video Song | Champion | Roshan | Anaswara | Ram Miriyala | Mickey J Meyer - YouTube - Google Chrome",
+        "time_spent_sec": 13
+    },
+    {
+        "window_title": "RegularGrammarandCFGdated8thoct (1) [Protected View] - PowerPoint",
+        "time_spent_sec": 6
     }
 ]

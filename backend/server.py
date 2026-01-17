@@ -1,6 +1,7 @@
 from pathlib import Path
+import re
 import threading
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 import sys
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+from typing import Any
 
 
 class AskRequest(BaseModel):
@@ -31,16 +33,19 @@ load_dotenv()
 
 api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-if not api_key:
-    raise RuntimeError(
-        "Gemini API key not found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment or .env file."
-    )
-
-genai.configure(api_key=api_key)
-
-model = genai.GenerativeModel("gemini-2.5-flash")
+_gemini_ready = bool(api_key)
+if _gemini_ready:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-flash")
+else:
+    model = None
 
 def ask_gemini(prompt: str) -> str:
+    if model is None:
+        raise RuntimeError(
+            "Gemini API key not found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment or .env file."
+        )
+
     response = model.generate_content(prompt)
     return response.text
 
@@ -52,10 +57,112 @@ app = FastAPI(
 )
 
 
+def _backend_dir() -> Path:
+    return Path(__file__).resolve().parent
+
+
+def _slugify(value: str) -> str:
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    value = re.sub(r"-+", "-", value).strip("-")
+    return value or "topic"
+
+
+class DetectorSnippet(BaseModel):
+    source: str = "screen"
+    where: str = "Active window"
+    text: str
+    strength: str = "medium"
+
+
+class DetectedTopic(BaseModel):
+    id: str
+    title: str
+    level: str = "intermediate"
+    confidence: float | None = None
+    tags: list[str] = []
+    detectedAt: str | None = None
+    snippets: list[DetectorSnippet] = []
+    detectedConcepts: list[dict[str, Any]] = []
+
+
+def _read_output_entries() -> list[dict[str, Any]]:
+    path = _backend_dir() / "output.json"
+    if not path.exists():
+        return []
+    try:
+        import json
+
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return [x for x in data if isinstance(x, dict)]
+        return []
+    except Exception:
+        return []
+
+
+def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTopic]:
+    # Expected capture entry shape (from ocr.py):
+    # {"title": <window title>, "ocr_text": <text>, "server_response": {"topic": ...} }
+    # There may also be summary entries: {"window_title": ..., "time_spent_sec": ...}
+    by_topic: dict[str, DetectedTopic] = {}
+
+    for e in entries:
+        ocr_text = (e.get("ocr_text") or "").strip()
+        if not ocr_text:
+            continue
+
+        server_resp = e.get("server_response")
+        topic = ""
+        if isinstance(server_resp, dict):
+            topic = (server_resp.get("topic") or "").strip() or (server_resp.get("response") or "").strip()
+
+        if not topic:
+            # If OCR is running but topic extraction isn't wired, fall back to window title.
+            topic = (e.get("title") or "").strip() or "Detected topic"
+
+        topic_id = _slugify(topic)
+        window_title = (e.get("title") or "").strip() or "Active window"
+
+        if topic_id not in by_topic:
+            by_topic[topic_id] = DetectedTopic(
+                id=topic_id,
+                title=topic,
+                level="intermediate",
+                confidence=None,
+                tags=[],
+                detectedAt=None,
+                snippets=[],
+                detectedConcepts=[],
+            )
+
+        snippet_text = ocr_text
+        if len(snippet_text) > 220:
+            snippet_text = snippet_text[:220].rstrip() + "…"
+
+        by_topic[topic_id].snippets.append(
+            DetectorSnippet(source="screen", where=window_title, text=snippet_text, strength="medium")
+        )
+
+    # Return in stable order (most recent last in file tends to be newest; reverse for UI)
+    topics = list(by_topic.values())
+    topics.sort(key=lambda t: t.title)
+    return topics
+
+
 # OCR PROCESS MANAGEMENT
 
 _ocr_process = None
 _ocr_lock = threading.Lock()
+
+
+def _stop_flag_path() -> Path:
+    return _backend_dir() / "stop.flag"
+
+
+def _ocr_log_path() -> Path:
+    return _backend_dir() / "ocr.log"
 
 
 def _ocr_script_path() -> Path:
@@ -73,8 +180,8 @@ def start_ocr() -> bool:
     with _ocr_lock:
         if _ocr_process is not None and _ocr_process.poll() is None:
             return False
-        
-        stop_file = Path("stop.flag")
+
+        stop_file = _stop_flag_path()
         if stop_file.exists():
             stop_file.unlink()
 
@@ -83,12 +190,16 @@ def start_ocr() -> bool:
             raise RuntimeError(f"OCR script not found at {script_path}")
 
         backend_dir = script_path.parent
+
+        log_path = _ocr_log_path()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file = open(log_path, "a", encoding="utf-8")
         
         _ocr_process = subprocess.Popen(
             [sys.executable, str(script_path)],
             cwd=str(backend_dir),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=log_file,
+            stderr=log_file,
             stdin=subprocess.DEVNULL,
         )
         return True 
@@ -98,7 +209,8 @@ def stop_ocr() -> bool:
     with _ocr_lock:
         if _ocr_process is None:
             return False
-        Path("stop.flag").touch()
+
+        _stop_flag_path().touch()
 
         try:
             _ocr_process.wait(timeout=10)
@@ -133,6 +245,8 @@ def ask_ai(data: AskRequest):
     try:
         answer = ask_gemini(data.prompt)
         return {"response": answer}
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -152,27 +266,56 @@ def detect_topic(data: DetectTopicRequest):
         f"OCR text:\n{text}"
     )
 
+    def fallback_topic() -> str:
+        if title:
+            return title
+        words = [w for w in re.split(r"\s+", text) if w]
+        return " ".join(words[:8]) or "Detected topic"
+
     try:
         topic = ask_gemini(prompt).strip()
         if not topic:
-            raise RuntimeError("Empty topic")
+            topic = fallback_topic()
         return {"topic": topic, "confidence": None, "raw": None}
+    except RuntimeError as e:
+        # Missing key / AI disabled
+        return {"topic": fallback_topic(), "confidence": None, "raw": str(e)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Quota / transient errors shouldn't kill detection.
+        return {"topic": fallback_topic(), "confidence": None, "raw": str(e)}
 
 @app.get("/ocr/status")
 def ocr_status():
     global _ocr_process
     exit_code = None
+    pid = None
     
     with _ocr_lock:
         if _ocr_process is not None:
             exit_code = _ocr_process.poll()
+            pid = _ocr_process.pid
     
     return {
         "running": is_ocr_running(),
-        "exit_code": exit_code
+        "exit_code": exit_code,
+        "pid": pid,
+        "log": str(_ocr_log_path())
     }
+
+
+@app.get("/ocr/log")
+def ocr_log(lines: int = 200):
+    path = _ocr_log_path()
+    if not path.exists():
+        return {"lines": []}
+
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as f:
+            content = f.read().splitlines()
+        tail = content[-max(1, min(lines, 2000)) :]
+        return {"lines": tail}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/ocr/start")
 def ocr_start():
@@ -188,5 +331,38 @@ def ocr_start():
 def ocr_stop():
     stopped = stop_ocr()
     return {"stopped": stopped, "running": is_ocr_running()}
+
+
+# FRONTEND-FRIENDLY DETECTOR ENDPOINTS (aliases)
+
+@app.get("/detector/status")
+def detector_status():
+    return ocr_status()
+
+
+@app.post("/detector/start")
+def detector_start():
+    return ocr_start()
+
+
+@app.post("/detector/stop")
+def detector_stop():
+    return ocr_stop()
+
+
+@app.get("/detector/topics", response_model=list[DetectedTopic])
+def detector_topics():
+    entries = _read_output_entries()
+    return _build_topics_from_entries(entries)
+
+
+@app.get("/detector/topics/{topic_id}", response_model=DetectedTopic)
+def detector_topic(topic_id: str):
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    for t in topics:
+        if t.id == topic_id:
+            return t
+    raise HTTPException(status_code=404, detail="Topic not found")
 
 

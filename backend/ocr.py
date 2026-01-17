@@ -22,6 +22,14 @@ def should_stop():
 
 sys.stdout.reconfigure(encoding="utf-8")
 
+
+def write_output(entries):
+    try:
+        with open("output.json", "w", encoding="utf-8") as f:
+            json.dump(entries, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print("[WARN] Could not write output.json:", e)
+
 # Set tesseract path
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
@@ -148,17 +156,16 @@ def draw_border():
 
 
 def send_text_to_server(text, title):
-    url = "http://127.0.0.1:8000/ask"
-
-    # Combine window title and OCR text into a single prompt
-    prompt = f"Window title: {title}\n\n{text}"
+    # Prefer topic extraction endpoint so the UI can show detected topics.
+    url = "http://127.0.0.1:8000/detect/topic"
 
     payload = {
-        "prompt": prompt
+        "text": text,
+        "title": title,
     }
 
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=10)
 
         print("HTTP STATUS:", response.status_code)
 
@@ -181,24 +188,56 @@ def send_text_to_server(text, title):
 
 
 API_URL = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-mnli"
-headers = {
-    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
-}
+HF_TOKEN = os.getenv("HF_TOKEN")
+headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else None
 
 def query(payload):
-    response = requests.post(API_URL, headers=headers, json=payload)
+    if not headers:
+        return None
+    response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
     return response.json()
 
 def detect_text_classification(text):
-    output = query({
-        "inputs": text,
-        "parameters": {"candidate_labels": ["educational content","personal data",
-            "credentials","sensitive information","entertainment","other"]},
-    })
+    # If HF token isn't configured, don't block detection.
+    if not HF_TOKEN:
+        return True
+
+    output = query(
+        {
+            "inputs": text,
+            "parameters": {
+                "candidate_labels": [
+                    "educational content",
+                    "personal data",
+                    "credentials",
+                    "sensitive information",
+                    "entertainment",
+                    "other",
+                ]
+            },
+        }
+    )
 
     print(output)
-    top_item = max(output, key=lambda x: x["score"])
-    return top_item["label"] == "educational content"
+
+    # HF router can return either:
+    # 1) {"labels": [...], "scores": [...]} (common)
+    # 2) a list of {"label": ..., "score": ...}
+    if isinstance(output, dict):
+        labels = output.get("labels") or []
+        scores = output.get("scores") or []
+        if labels and scores and len(labels) == len(scores):
+            max_index = scores.index(max(scores))
+            return labels[max_index] == "educational content"
+
+    if isinstance(output, list) and output:
+        try:
+            top_item = max(output, key=lambda x: x.get("score", 0))
+            return top_item.get("label") == "educational content"
+        except Exception:
+            return True
+
+    return True
 
 
 # -------- MAIN --------
@@ -251,6 +290,8 @@ try:
                     "server_response": response
                 }
             entries.append(data)
+            # Write continuously so the UI updates while OCR is running.
+            write_output(entries)
             print(data)
 
             del img
@@ -264,8 +305,8 @@ try:
         }
         entries.append(data)
 
-    with open("output.json", "w", encoding="utf-8") as f: 
-        json.dump(entries, f, indent=4, ensure_ascii=False)
+    # Final write (includes time_spent summary entries)
+    write_output(entries)
 
 except Exception as e:
     print("[ERROR] Unexpected error:", e)

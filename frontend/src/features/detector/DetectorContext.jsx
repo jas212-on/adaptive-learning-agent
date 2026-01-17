@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as api from '../../services/api'
 
 const DetectorContext = createContext(null)
@@ -11,6 +11,48 @@ export function DetectorProvider({ children }) {
   const [error, setError] = useState(null)
 
   const lastStartRef = useRef(0)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const status = await api.getDetectorStatus()
+        if (!mounted) return
+        if (status?.running) {
+          setRunning(true)
+          setStartedAt(Date.now())
+        }
+      } catch {
+        // ignore
+      }
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!running) return
+    let cancelled = false
+
+    const tick = async () => {
+      try {
+        const res = await api.listDetectedTopics()
+        if (cancelled) return
+        setTopics(res)
+      } catch {
+        // ignore polling failures
+      }
+    }
+
+    tick()
+    const id = setInterval(tick, 4000)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+  }, [running])
 
   const start = useCallback(async () => {
     setError(null)

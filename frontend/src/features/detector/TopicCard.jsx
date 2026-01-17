@@ -23,7 +23,10 @@ export function TopicCard({ topic }) {
             <div className="min-w-0">
               <div className="truncate font-semibold">{topic.title}</div>
               <div className="mt-1 text-sm text-fg-muted">
-                Confidence: {Math.round((topic.confidence || 0) * 100)}%
+                Confidence:{' '}
+                {topic.confidence === null || topic.confidence === undefined
+                  ? '—'
+                  : `${Math.round(topic.confidence * 100)}%`}
               </div>
             </div>
             <Badge variant={levelVariant(topic.level)} className="shrink-0">

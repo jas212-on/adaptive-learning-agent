@@ -53,7 +53,11 @@ export default function TopicDetails() {
     return (
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={levelVariant(topic.level)}>{topic.level}</Badge>
-        <Badge className="bg-bg-muted text-fg">{Math.round((topic.confidence || 0) * 100)}% confidence</Badge>
+        <Badge className="bg-bg-muted text-fg">
+          {topic.confidence === null || topic.confidence === undefined
+            ? 'Confidence: —'
+            : `${Math.round(topic.confidence * 100)}% confidence`}
+        </Badge>
       </div>
     )
   }, [topic])
