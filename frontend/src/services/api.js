@@ -215,15 +215,19 @@ export async function generateRoadmap(topicId, level = 'intermediate') {
   }
 }
 
-export async function suggestResources(topicId) {
-  await sleep(650)
-  return {
-    topicId,
-    resources: [
-      { type: 'docs', title: 'Official docs', url: 'https://example.com/docs' },
-      { type: 'video', title: 'Crash course', url: 'https://example.com/video' },
-      { type: 'practice', title: 'Practice set', url: 'https://example.com/practice' },
-    ],
+export async function suggestResources(topicId, opts = {}) {
+  const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
+  const limit = Number.isFinite(opts?.limit) ? opts.limit : 40
+
+  const qs = new URLSearchParams()
+  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  if (limit) qs.set('limit', String(limit))
+
+  try {
+    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/resources?${qs.toString()}`)
+  } catch (e) {
+    // Bubble error so the UI doesn't show irrelevant fallback resources.
+    throw e
   }
 }
 

@@ -10,6 +10,9 @@ google-generativeai
 # HTTP client (used by OCR + HF router)
 requests
 
+# Web search (SerpAPI)
+google-search-results
+
 # OCR / screen capture (Windows)
 pytesseract
 opencv-python

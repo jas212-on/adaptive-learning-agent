@@ -13,6 +13,8 @@ import os
 from dotenv import load_dotenv
 from typing import Any
 
+from urllib.parse import urlparse
+
 
 class AskRequest(BaseModel):
     prompt: str
@@ -97,6 +99,261 @@ class DetectedTopic(BaseModel):
     detectedConcepts: list[dict[str, Any]] = []
     subtopics: list[str] = []
     summary: str | None = None
+
+
+class ResourceItem(BaseModel):
+    title: str
+    url: str
+    type: str  # docs | article | video
+    source: str | None = None  # domain or channel
+    snippet: str | None = None
+    score: int
+
+
+class ResourcesResponse(BaseModel):
+    query: str
+    topicId: str | None = None
+    subtopicId: str | None = None
+    resources: list[ResourceItem]
+
+
+def _domain_from_url(url: str) -> str:
+    try:
+        host = urlparse(url).netloc.lower()
+    except Exception:
+        return ""
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
+_TRUSTED_DOMAINS: dict[str, int] = {
+    # Official / reference (general)
+    "wikipedia.org": 55,
+    "britannica.com": 55,
+    "openstax.org": 65,
+    "khanacademy.org": 65,
+    "mit.edu": 55,
+    "ocw.mit.edu": 75,
+    "coursera.org": 40,
+    "edx.org": 40,
+
+    # Science / biology (examples)
+    "ncbi.nlm.nih.gov": 80,
+    "nih.gov": 70,
+    "genome.gov": 70,
+    "nature.com": 55,
+    "science.org": 55,
+
+    # Programming (keep)
+    "python.org": 120,
+    "docs.python.org": 140,
+    "developer.mozilla.org": 70,
+    "freecodecamp.org": 90,
+    "realpython.com": 80,
+    "w3schools.com": 35,
+}
+
+
+_TRUSTED_VIDEO_CHANNELS: dict[str, int] = {
+    "freecodecamp.org": 90,
+    "programming with mosh": 75,
+    "corey schafer": 80,
+    "tech with tim": 70,
+    "cs50": 70,
+    "khan academy": 80,
+    "crashcourse": 70,
+    "mit opencourseware": 75,
+    "ted-ed": 60,
+}
+
+
+_DOMAIN_BLOCKLIST: set[str] = {
+    "reddit.com",
+    "quora.com",
+    "pinterest.com",
+    "facebook.com",
+    "instagram.com",
+    "tiktok.com",
+    "x.com",
+    "twitter.com",
+}
+
+
+def _domain_base_score(domain: str) -> int:
+    if not domain:
+        return 0
+    for bad in _DOMAIN_BLOCKLIST:
+        if domain == bad or domain.endswith("." + bad):
+            return -999
+    base = 0
+    for trusted, pts in _TRUSTED_DOMAINS.items():
+        if domain == trusted or domain.endswith("." + trusted):
+            base = max(base, pts)
+    # Generic trust for academic/government sites
+    if base <= 0 and (domain.endswith(".edu") or domain.endswith(".gov")):
+        base = 55
+    return base
+
+
+def _score_resource(title: str, snippet: str, url: str, base: int = 0) -> int:
+    text = f"{title} {snippet}".lower()
+    score = int(base)
+
+    # Positive keywords
+    for kw, pts in (
+        ("official", 30),
+        ("documentation", 25),
+        ("docs", 10),
+        ("reference", 15),
+        ("tutorial", 20),
+        ("beginner", 20),
+        ("for beginners", 25),
+        ("crash course", 15),
+        ("guide", 15),
+        ("getting started", 20),
+        ("examples", 10),
+        ("best practices", 10),
+    ):
+        if kw in text:
+            score += pts
+
+    # URL signals
+    url_l = (url or "").lower()
+    if "/docs" in url_l or "docs." in url_l:
+        score += 10
+    if url_l.endswith(".pdf"):
+        score -= 30
+
+    # Lightweight penalties for low-signal pages
+    if "login" in url_l or "signup" in url_l:
+        score -= 20
+    if "reddit.com" in url_l:
+        score -= 30
+
+    return score
+
+
+def _extract_serp_resources(results: dict[str, Any], query: str, limit: int) -> list[ResourceItem]:
+    items: list[ResourceItem] = []
+    seen_urls: set[str] = set()
+
+    organic = results.get("organic_results")
+    if isinstance(organic, list):
+        for r in organic:
+            if not isinstance(r, dict):
+                continue
+            title = str(r.get("title") or "").strip()
+            url = str(r.get("link") or "").strip()
+            if not title or not url:
+                continue
+            if url in seen_urls:
+                continue
+
+            domain = _domain_from_url(url)
+            base = _domain_base_score(domain)
+            if base < 0:
+                continue
+
+            snippet = str(r.get("snippet") or "").strip() or None
+            score = _score_resource(title, snippet or "", url, base=base)
+
+            # If not trusted/edu/gov, only keep if it still scores well.
+            if base == 0 and score < 70:
+                continue
+
+            res_type = "docs" if ("docs" in domain or domain.endswith("python.org")) else "article"
+
+            items.append(
+                ResourceItem(
+                    title=title,
+                    url=url,
+                    type=res_type,
+                    source=domain,
+                    snippet=snippet,
+                    score=score,
+                )
+            )
+            seen_urls.add(url)
+
+    inline_videos = results.get("inline_videos")
+    # SerpAPI can return inline_videos as {"videos": [...]} or directly a list.
+    videos_list: list[Any] = []
+    if isinstance(inline_videos, dict) and isinstance(inline_videos.get("videos"), list):
+        videos_list = inline_videos.get("videos")
+    elif isinstance(inline_videos, list):
+        videos_list = inline_videos
+
+    for v in videos_list:
+        if not isinstance(v, dict):
+            continue
+        title = str(v.get("title") or "").strip()
+        url = str(v.get("link") or v.get("url") or "").strip()
+        channel = str(v.get("channel") or v.get("author") or "").strip()
+        if not title or not url:
+            continue
+        if url in seen_urls:
+            continue
+
+        channel_key = channel.lower()
+        base = 0
+        for trusted_name, pts in _TRUSTED_VIDEO_CHANNELS.items():
+            if trusted_name in channel_key:
+                base = max(base, pts)
+        # Accept youtube videos if channel is trusted; otherwise ignore.
+        if base <= 0:
+            continue
+
+        snippet = str(v.get("snippet") or v.get("description") or "").strip() or None
+        score = _score_resource(title, snippet or "", url, base=base)
+
+        items.append(
+            ResourceItem(
+                title=title,
+                url=url,
+                type="video",
+                source=channel or "YouTube",
+                snippet=snippet,
+                score=score,
+            )
+        )
+        seen_urls.add(url)
+
+    # Sort and trim
+    items.sort(key=lambda x: x.score, reverse=True)
+    hard_cap = 60
+    n = int(limit) if isinstance(limit, int) or (isinstance(limit, str) and str(limit).isdigit()) else 0
+    if n <= 0:
+        n = hard_cap
+    n = max(1, min(n, hard_cap))
+    return items[:n]
+
+
+def _serp_search(query: str, location: str | None = None) -> dict[str, Any]:
+    serp_key = os.getenv("SERPAPI_API_KEY") or os.getenv("SERP_API_KEY")
+    if not serp_key:
+        raise RuntimeError("SerpAPI key not found. Set SERPAPI_API_KEY (or SERP_API_KEY).")
+
+    try:
+        from serpapi import GoogleSearch
+    except Exception as e:
+        raise RuntimeError(
+            "SerpAPI client not installed. Install backend requirements (google-search-results)."
+        ) from e
+
+    params = {
+        "engine": "google",
+        "google_domain": "google.com",
+        "hl": "en",
+        "gl": "us",
+        "q": query,
+        "api_key": serp_key,
+    }
+    if location:
+        params["location"] = location
+
+    search = GoogleSearch(params)
+    return search.get_dict()
 
 
 def _read_output_entries() -> list[dict[str, Any]]:
@@ -604,5 +861,43 @@ def detector_topic(topic_id: str):
             t.summary = get_topic_summary(t.id, t.title, entries)
             return t
     raise HTTPException(status_code=404, detail="Topic not found")
+
+
+@app.get("/detector/topics/{topic_id}/resources", response_model=ResourcesResponse)
+def detector_topic_resources(
+    topic_id: str,
+    subtopic_id: str | None = None,
+    limit: int = 8,
+    location: str | None = None,
+):
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    topic = next((t for t in topics if t.id == topic_id), None)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    query = topic.title
+    chosen_subtopic: str | None = None
+    if subtopic_id:
+        for st in topic.subtopics or []:
+            if _slugify(st) == subtopic_id:
+                chosen_subtopic = st
+                break
+        if chosen_subtopic:
+            query = f"{topic.title} {chosen_subtopic}"
+
+    try:
+        raw = _serp_search(query=query, location=location)
+        resources = _extract_serp_resources(raw, query=query, limit=limit)
+        return {
+            "query": query,
+            "topicId": topic_id,
+            "subtopicId": subtopic_id,
+            "resources": resources,
+        }
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -14,5 +14,9 @@
   "molecular-biology-fundamentals": {
     "hash": "74b9f60db638ab1ae6c1269e363f5e106017291ec05859ca5fe8f81195fb8120",
     "summary": "Here's a summary of the captured content:\n\n*   Molecular biology involves analyzing various types of data generated from cells.\n*   Key data types include DNA sequences, RNA sequences, and protein sequences.\n*   Microarray images represent another important type of data in molecular biology.\n*   DNA, RNA, and protein sequences are essentially text data (strings).\n*   These sequence data can be viewed and opened using a standard text editor.\n*   Microarray data, unlike sequences, are digital images."
+  },
+  "molecular-biology": {
+    "hash": "05040e3c85ca0002a195b2e248e21400e2e219c50178086a1f9a4940384fe83c",
+    "summary": "Here's a summary of the key concepts from the lecture content:\n\n*   **Eukaryotes** are complex organisms (e.g., humans, trees), while **Prokaryotes** are simpler life forms (e.g., bacteria).\n*   All living organisms are composed of **cells**, the fundamental unit of life.\n*   The three **key molecules of life** are DNA, RNA, and Proteins.\n*   In eukaryotic cells, **DNA** is housed within the **nucleus** and packaged into structures called **chromosomes**.\n*   DNA is a **double-stranded** molecule that serves to store genetic information.\n*   It is constructed from four types of **nucleotides**: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).\n*   **RNA** is a **single-stranded** molecule, distinct from DNA."
   }
 }

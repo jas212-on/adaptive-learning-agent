@@ -6,7 +6,7 @@ import { Spinner } from '../../../components/ui/Spinner'
 import * as api from '../../../services/api'
 
 export default function Resources() {
-  const { topic } = useOutletContext()
+  const { topic, subtopicId } = useOutletContext()
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -20,7 +20,7 @@ export default function Resources() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.suggestResources(topic.id)
+      const res = await api.suggestResources(topic.id, { subtopicId })
       setData(res)
     } catch (err) {
       setError(err?.message || 'Failed to load resources')
@@ -54,10 +54,13 @@ export default function Resources() {
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <div className="text-sm font-semibold">{r.title}</div>
-                  <div className="text-xs text-fg-muted">{r.type}</div>
+                  <div className="text-xs text-fg-muted">
+                    {r.type}{r.source ? ` • ${r.source}` : ''}
+                  </div>
                 </div>
                 <ExternalLink size={16} />
               </div>
+              {r.snippet ? <div className="mt-2 text-xs text-fg-muted">{r.snippet}</div> : null}
             </a>
           ))}
         </div>
