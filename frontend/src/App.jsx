@@ -19,14 +19,8 @@ import Suggestions from './pages/dashboard/Suggestions'
 import Timetable from './pages/dashboard/Timetable'
 import DependencyGraph from './pages/dashboard/DependencyGraph'
 
-import DetectedInfo from './pages/dashboard/topic/DetectedInfo'
-import Explainer from './pages/dashboard/topic/Explainer'
-import Resources from './pages/dashboard/topic/Resources'
-import Questions from './pages/dashboard/topic/Questions'
-import Quiz from './pages/dashboard/topic/Quiz'
-
-import RoadmapIndex from './pages/dashboard/topic/RoadmapIndex'
-import RoadmapModule from './pages/dashboard/topic/RoadmapModule'
+// Learning Mode view for focused learning experience
+import LearningMode from './pages/dashboard/LearningMode'
 
 export default function App() {
   return (
@@ -63,19 +57,19 @@ export default function App() {
         <Route path="dependency-graph" element={<DependencyGraph />} />
 
         <Route path="topics" element={<TopicsIndex />} />
-        <Route path="topics/:topicId" element={<TopicDetails />}>
-          <Route index element={<Navigate to="detected" replace />} />
-          <Route path="detected" element={<DetectedInfo />} />
-          <Route path="roadmap" element={<RoadmapIndex />} />
-          <Route path="roadmap/:subtopicId" element={<RoadmapModule />}>
-            <Route index element={<Navigate to="explainer" replace />} />
-            <Route path="explainer" element={<Explainer />} />
-            <Route path="resources" element={<Resources />} />
-            <Route path="questions" element={<Questions />} />
-            <Route path="quiz" element={<Quiz />} />
-          </Route>
-        </Route>
+        {/* TopicDetails now handles all module/step navigation via query params */}
+        <Route path="topics/:topicId" element={<TopicDetails />} />
       </Route>
+
+      {/* Learning Mode - focused learning experience */}
+      <Route
+        path="/learn/:topicId"
+        element={
+          <ProtectedRoute>
+            <LearningMode />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -247,6 +247,32 @@ export async function suggestResources(topicId, opts = {}) {
   }
 }
 
+/**
+ * Generate a quiz for a specific subtopic.
+ * @param {string} topicId - The topic ID
+ * @param {Object} opts - Options
+ * @param {string} opts.subtopicId - The subtopic ID (required)
+ * @param {number} opts.nQuestions - Number of questions (default 5)
+ * @param {boolean} opts.force - Force regeneration (default false)
+ * @returns {Promise<Object>} Quiz data with questions
+ */
+export async function generateQuiz(topicId, opts = {}) {
+  const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
+  const nQuestions = Number.isFinite(opts?.nQuestions) ? opts.nQuestions : 5
+  const force = Boolean(opts?.force)
+
+  if (!subtopicId) {
+    throw new Error('subtopicId is required for quiz generation')
+  }
+
+  const qs = new URLSearchParams()
+  qs.set('subtopic_id', subtopicId)
+  qs.set('n_questions', String(nQuestions))
+  if (force) qs.set('force', 'true')
+
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz?${qs.toString()}`)
+}
+
 export async function generateQuestions(topicId, opts = {}) {
   const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
   const nQuestions = Number.isFinite(opts?.nQuestions) ? opts.nQuestions : 5
@@ -446,5 +472,141 @@ export async function getConceptGraph(topicId, options = {}) {
   })
 
   return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/graph?${params}`)
+}
+
+// ==================== Resume Learning Functionality ====================
+
+const LAST_VIEWED_KEY = 'ala.lastViewed'
+
+/**
+ * Save the last viewed position for a topic
+ * @param {string} topicId 
+ * @param {Object} position - { module, step }
+ */
+export function saveLastViewedPosition(topicId, position) {
+  try {
+    const data = JSON.parse(localStorage.getItem(LAST_VIEWED_KEY) || '{}')
+    data[topicId] = {
+      ...position,
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(LAST_VIEWED_KEY, JSON.stringify(data))
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Get the last viewed position for a topic
+ * @param {string} topicId 
+ * @returns {Object|null} - { module, step, timestamp } or null
+ */
+export function getLastViewedPosition(topicId) {
+  try {
+    const data = JSON.parse(localStorage.getItem(LAST_VIEWED_KEY) || '{}')
+    return data[topicId] || null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Get the resume learning URL for a topic based on progress
+ * @param {string} topicId 
+ * @param {Object} topic - Topic data with subtopics
+ * @param {Object} progress - Roadmap progress from localStorage
+ * @returns {Object} - { url, label, type }
+ */
+export function getResumeLearningInfo(topicId, topic, progress) {
+  if (!topic?.subtopics?.length) {
+    return {
+      url: `/dashboard/topics/${topicId}`,
+      label: 'View Topic',
+      type: 'view',
+    }
+  }
+
+  // Helper to slugify subtopic names
+  const slugify = (s) =>
+    String(s)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+
+  const subtopics = topic.subtopics.map((t, idx) => ({
+    id: slugify(t) || `subtopic-${idx + 1}`,
+    title: t,
+  }))
+
+  // Check last viewed position first
+  const lastViewed = getLastViewedPosition(topicId)
+  if (lastViewed?.module) {
+    return {
+      url: `/dashboard/topics/${topicId}?module=${lastViewed.module}&step=${lastViewed.step || 'explainer'}`,
+      label: 'Continue Learning',
+      type: 'continue',
+    }
+  }
+
+  // Find first incomplete module
+  const moduleCompletion = (state) => {
+    const keys = ['explainer', 'resources', 'quiz']
+    const done = keys.filter((k) => !!state?.[k]).length
+    return done / keys.length
+  }
+
+  const ensureModule = (prog, id) =>
+    prog[id] || { explainer: false, resources: false, quiz: false }
+
+  // Check if all content viewed but quiz not passed
+  let allContentViewed = true
+  let firstIncomplete = null
+
+  for (const m of subtopics) {
+    const state = ensureModule(progress || {}, m.id)
+    const completion = moduleCompletion(state)
+
+    if (completion < 1 && !firstIncomplete) {
+      firstIncomplete = m
+
+      // Determine which step to start
+      let step = 'explainer'
+      if (state.explainer && !state.resources) step = 'resources'
+      else if (state.explainer && state.resources && !state.quiz) step = 'quiz'
+
+      if (!state.explainer || !state.resources) {
+        allContentViewed = false
+      }
+    }
+  }
+
+  if (!firstIncomplete) {
+    // All complete
+    return {
+      url: `/learn/${topicId}`,
+      label: 'Review',
+      type: 'review',
+    }
+  }
+
+  if (allContentViewed) {
+    return {
+      url: `/dashboard/topics/${topicId}?module=${firstIncomplete.id}&step=quiz`,
+      label: 'Take Quiz',
+      type: 'quiz',
+    }
+  }
+
+  // Determine step based on progress
+  const state = ensureModule(progress || {}, firstIncomplete.id)
+  let step = 'explainer'
+  if (state.explainer && !state.resources) step = 'resources'
+  else if (state.explainer && state.resources && !state.quiz) step = 'quiz'
+
+  return {
+    url: `/dashboard/topics/${topicId}?module=${firstIncomplete.id}&step=${step}`,
+    label: 'Continue Learning',
+    type: 'continue',
+  }
 }
 

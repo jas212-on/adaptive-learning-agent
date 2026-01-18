@@ -61,5 +61,54 @@
     "Transcription Termination",
     "RNA Polymerase Enzyme",
     "Promoter DNA Sequences"
+  ],
+  "384712ec65183407": [
+    "Variables and Expressions",
+    "Solving Linear Equations",
+    "Functions and Graphing",
+    "Polynomials and Factoring",
+    "Systems of Equations"
+  ],
+  "994c95f1269985c1": [
+    "Defining variables",
+    "Writing algebraic expressions",
+    "Evaluating expressions",
+    "Simplifying expressions",
+    "Terms and coefficients"
+  ],
+  "df1e0c0db85b0db7": [
+    "Isolate the variable",
+    "Combine like terms",
+    "Distributive property application",
+    "Variables on both sides",
+    "Solving with fractions"
+  ],
+  "e78508d3319a5b2c": [
+    "Define Function, Domain",
+    "Basic Graphing Techniques",
+    "Function Transformations",
+    "Common Function Types",
+    "Inverse Functions Concepts"
+  ],
+  "1c75ae67d2412493": [
+    "Polynomial Introduction",
+    "Polynomial Operations",
+    "Basic Factoring Methods",
+    "Special Factoring Forms",
+    "Polynomial Zeros Solutions"
+  ],
+  "361df1ca573155b5": [
+    "Solving Methods",
+    "Number of Solutions",
+    "Graphing Systems",
+    "Matrix Solutions",
+    "Word Problem Applications"
+  ],
+  "0f86652273768378": [
+    "Light Reactions",
+    "Calvin Cycle",
+    "Chloroplasts and Pigments",
+    "Reactants and Products",
+    "Factors Affecting Rate"
   ]
 }

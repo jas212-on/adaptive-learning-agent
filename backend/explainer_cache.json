@@ -130,5 +130,147 @@
       }
     ],
     "generatedAt": "2026-01-17T21:01:04.015004+00:00"
+  },
+  "algebra:equations": {
+    "overview": "Equations are fundamental mathematical statements that assert the equality of two expressions. They typically involve variables, constants, and an equals sign, serving as a powerful tool to represent relationships and solve for unknown quantities. The primary goal when working with equations is often to find the value(s) of the variable(s) that make the statement true.",
+    "prerequisites": [
+      "Numbers and basic arithmetic operations (addition, subtraction, multiplication, division)",
+      "Order of Operations (PEMDAS/BODMAS)",
+      "Understanding of variables and constants",
+      "Concept of algebraic expressions",
+      "Properties of real numbers (commutative, associative, distributive)",
+      "Basic understanding of inequalities",
+      "Concept of 'equality'"
+    ],
+    "keyIdeas": [
+      "An equation shows that two mathematical expressions are equal.",
+      "The core principle of solving equations is to maintain balance: whatever operation is performed on one side must also be performed on the other.",
+      "Inverse operations are used to 'undo' operations and isolate the variable (e.g., addition undoes subtraction, multiplication undoes division).",
+      "The solution(s) to an equation are the value(s) of the variable(s) that make the equation a true statement.",
+      "Solutions can be verified by substituting them back into the original equation.",
+      "Equations can have one solution, no solutions, or infinitely many solutions."
+    ],
+    "pitfalls": [
+      "Forgetting to apply an operation to both sides of the equation, leading to an unbalanced statement.",
+      "Making sign errors, especially when distributing negative numbers or transposing terms.",
+      "Incorrectly applying the order of operations when simplifying expressions.",
+      "Confusing an expression with an equation (an equation *must* have an equals sign).",
+      "Dividing by a variable that could potentially be zero, which is undefined.",
+      "Not simplifying expressions on each side of the equation before attempting to isolate the variable.",
+      "Failing to check solutions, especially for equations that might introduce extraneous solutions."
+    ],
+    "sections": [
+      {
+        "title": "Prerequisites",
+        "bullets": [
+          "Numbers and basic arithmetic operations (addition, subtraction, multiplication, division)",
+          "Order of Operations (PEMDAS/BODMAS)",
+          "Understanding of variables and constants",
+          "Concept of algebraic expressions",
+          "Properties of real numbers (commutative, associative, distributive)",
+          "Basic understanding of inequalities",
+          "Concept of 'equality'"
+        ]
+      },
+      {
+        "title": "Key Ideas",
+        "bullets": [
+          "An equation shows that two mathematical expressions are equal.",
+          "The core principle of solving equations is to maintain balance: whatever operation is performed on one side must also be performed on the other.",
+          "Inverse operations are used to 'undo' operations and isolate the variable (e.g., addition undoes subtraction, multiplication undoes division).",
+          "The solution(s) to an equation are the value(s) of the variable(s) that make the equation a true statement.",
+          "Solutions can be verified by substituting them back into the original equation.",
+          "Equations can have one solution, no solutions, or infinitely many solutions."
+        ]
+      },
+      {
+        "title": "Pitfalls",
+        "bullets": [
+          "Forgetting to apply an operation to both sides of the equation, leading to an unbalanced statement.",
+          "Making sign errors, especially when distributing negative numbers or transposing terms.",
+          "Incorrectly applying the order of operations when simplifying expressions.",
+          "Confusing an expression with an equation (an equation *must* have an equals sign).",
+          "Dividing by a variable that could potentially be zero, which is undefined.",
+          "Not simplifying expressions on each side of the equation before attempting to isolate the variable.",
+          "Failing to check solutions, especially for equations that might introduce extraneous solutions."
+        ]
+      }
+    ],
+    "generatedAt": "2026-01-18T02:39:26.912673+00:00"
+  },
+  "photosynthesis:light-dependent-reactions": {
+    "overview": "The Light Dependent Reactions are the first stage of photosynthesis, where light energy is captured by pigments like chlorophyll. This energy is converted into chemical energy in the form of ATP and NADPH, which are crucial for the subsequent light-independent reactions. These reactions occur within the thylakoid membranes of chloroplasts and release oxygen as a byproduct.",
+    "prerequisites": [
+      "Basic understanding of plant cells and organelles, especially chloroplasts.",
+      "Concept of energy in biological systems (e.g., chemical energy, light energy).",
+      "General overview of photosynthesis as a process to convert light energy into chemical energy.",
+      "Understanding of ATP as an energy currency molecule.",
+      "Familiarity with the concept of electron carriers (e.g., NADP+).",
+      "Basic knowledge of pigments like chlorophyll and their role in light absorption.",
+      "The role of water in biological processes."
+    ],
+    "keyIdeas": [
+      "Location: Occur exclusively in the thylakoid membranes within chloroplasts.",
+      "Inputs: Light energy, water (H2O), ADP, and NADP+.",
+      "Outputs: ATP, NADPH, and oxygen (O2).",
+      "Photosystems: Light energy is absorbed by chlorophyll in Photosystem II and Photosystem I.",
+      "Electron Transport Chain: Excited electrons move through a series of protein complexes, releasing energy.",
+      "Photolysis: Water molecules are split to replace lost electrons, releasing protons (H+), electrons (e-), and oxygen (O2).",
+      "Chemiosmosis: The energy from electron transport is used to pump protons into the thylakoid lumen, creating a proton gradient.",
+      "ATP Synthesis: Protons flow back out of the lumen through ATP synthase, driving the production of ATP from ADP and Pi.",
+      "NADPH Production: Electrons are transferred to NADP+ to form NADPH, an energy-carrying molecule."
+    ],
+    "pitfalls": [
+      "Confusing the inputs and outputs with the Light-Independent Reactions (Calvin Cycle).",
+      "Believing that glucose is produced directly in the light-dependent reactions.",
+      "Not understanding the critical role of water splitting (photolysis) in replacing electrons and producing oxygen.",
+      "Misinterpreting oxygen as the primary goal of these reactions, rather than a byproduct.",
+      "Failing to grasp how the proton gradient across the thylakoid membrane drives ATP synthesis (chemiosmosis).",
+      "Thinking that all forms of light are equally effective in driving photosynthesis.",
+      "Forgetting that ATP and NADPH are temporary energy carriers used specifically for the Calvin Cycle, not for general plant energy storage.",
+      "Not recognizing that ADP and NADP+ are recycled from the Calvin Cycle to be used again in the light-dependent reactions."
+    ],
+    "sections": [
+      {
+        "title": "Prerequisites",
+        "bullets": [
+          "Basic understanding of plant cells and organelles, especially chloroplasts.",
+          "Concept of energy in biological systems (e.g., chemical energy, light energy).",
+          "General overview of photosynthesis as a process to convert light energy into chemical energy.",
+          "Understanding of ATP as an energy currency molecule.",
+          "Familiarity with the concept of electron carriers (e.g., NADP+).",
+          "Basic knowledge of pigments like chlorophyll and their role in light absorption.",
+          "The role of water in biological processes."
+        ]
+      },
+      {
+        "title": "Key Ideas",
+        "bullets": [
+          "Location: Occur exclusively in the thylakoid membranes within chloroplasts.",
+          "Inputs: Light energy, water (H2O), ADP, and NADP+.",
+          "Outputs: ATP, NADPH, and oxygen (O2).",
+          "Photosystems: Light energy is absorbed by chlorophyll in Photosystem II and Photosystem I.",
+          "Electron Transport Chain: Excited electrons move through a series of protein complexes, releasing energy.",
+          "Photolysis: Water molecules are split to replace lost electrons, releasing protons (H+), electrons (e-), and oxygen (O2).",
+          "Chemiosmosis: The energy from electron transport is used to pump protons into the thylakoid lumen, creating a proton gradient.",
+          "ATP Synthesis: Protons flow back out of the lumen through ATP synthase, driving the production of ATP from ADP and Pi.",
+          "NADPH Production: Electrons are transferred to NADP+ to form NADPH, an energy-carrying molecule."
+        ]
+      },
+      {
+        "title": "Pitfalls",
+        "bullets": [
+          "Confusing the inputs and outputs with the Light-Independent Reactions (Calvin Cycle).",
+          "Believing that glucose is produced directly in the light-dependent reactions.",
+          "Not understanding the critical role of water splitting (photolysis) in replacing electrons and producing oxygen.",
+          "Misinterpreting oxygen as the primary goal of these reactions, rather than a byproduct.",
+          "Failing to grasp how the proton gradient across the thylakoid membrane drives ATP synthesis (chemiosmosis).",
+          "Thinking that all forms of light are equally effective in driving photosynthesis.",
+          "Forgetting that ATP and NADPH are temporary energy carriers used specifically for the Calvin Cycle, not for general plant energy storage.",
+          "Not recognizing that ADP and NADP+ are recycled from the Calvin Cycle to be used again in the light-dependent reactions."
+        ]
+      }
+    ],
+    "generatedAt": "2026-01-18T02:57:07.575363+00:00"
   }
 }

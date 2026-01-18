@@ -1,0 +1,199 @@
+{
+  "hash": "8df4d678c6a2a5c35e4cd3ec2769d85b4bc3d4c42f1f8911e3e9737b909b81f6",
+  "generatedAt": "2026-01-18T02:57:29.493137+00:00",
+  "updatedAt": "2026-01-18T02:58:54.639564+00:00",
+  "topicTitle": "Photosynthesis",
+  "topicId": "photosynthesis",
+  "subtopicTitle": "Light Dependent Reactions",
+  "subtopicId": "light-dependent-reactions",
+  "questions": [
+    {
+      "question": "Within a chloroplast, the elaborate folded membrane system responsible for containing the chlorophyll molecules that absorb light is known as the:",
+      "options": [
+        "Thylakoid membrane",
+        "Stroma",
+        "Outer chloroplast membrane",
+        "Inner chloroplast membrane"
+      ],
+      "correctAnswer": "Thylakoid membrane",
+      "isCorrect": true
+    },
+    {
+      "question": "The process of photolysis, essential for providing electrons to the electron transport chain in the light reactions, involves the splitting of which molecule?",
+      "options": [
+        "Water",
+        "Carbon dioxide",
+        "Glucose",
+        "ATP"
+      ],
+      "correctAnswer": "Water",
+      "isCorrect": false
+    },
+    {
+      "question": "Which specialized protein complex facilitates the diffusion of protons (H+ ions) from the thylakoid lumen to the stroma, coupling this movement with the synthesis of ATP?",
+      "options": [
+        "ATP synthase",
+        "Photosystem II",
+        "Cytochrome complex",
+        "Rubisco"
+      ],
+      "correctAnswer": "ATP synthase",
+      "isCorrect": false
+    },
+    {
+      "question": "What is the initial energy source that excites electrons within Photosystem II, leading to their transfer through the electron transport chain?",
+      "options": [
+        "Light energy",
+        "Chemical energy from glucose",
+        "Heat energy",
+        "Kinetic energy of water molecules"
+      ],
+      "correctAnswer": "Light energy",
+      "isCorrect": false
+    },
+    {
+      "question": "If a scientist were to isolate the specific membrane structures where a significant proton gradient is established to drive ATP production in photosynthesis, they would primarily be studying the:",
+      "options": [
+        "Thylakoid membranes",
+        "Chloroplast stroma",
+        "Mitochondrial cristae",
+        "Cell wall"
+      ],
+      "correctAnswer": "Thylakoid membranes",
+      "isCorrect": false
+    }
+  ],
+  "sets": [
+    {
+      "setId": "set_1",
+      "generatedAt": "2026-01-18T02:57:29.493137+00:00",
+      "submittedAt": "2026-01-18T02:58:05.353400+00:00",
+      "focus": null,
+      "questions": [
+        {
+          "question": "Where do the light-dependent reactions take place within a chloroplast?",
+          "options": [
+            "Stroma",
+            "Thylakoid membrane",
+            "Outer membrane",
+            "Inner membrane"
+          ],
+          "correctAnswer": "Thylakoid membrane",
+          "isCorrect": false
+        },
+        {
+          "question": "Which two reactants are directly required for the light-dependent reactions to occur?",
+          "options": [
+            "Carbon dioxide and water",
+            "Glucose and oxygen",
+            "Light energy and water",
+            "ATP and NADPH"
+          ],
+          "correctAnswer": "Light energy and water",
+          "isCorrect": false
+        },
+        {
+          "question": "What are the primary energy-carrying products generated during the light-dependent reactions?",
+          "options": [
+            "Glucose and oxygen",
+            "ATP and NADPH",
+            "Carbon dioxide and water",
+            "Starch and lipids"
+          ],
+          "correctAnswer": "ATP and NADPH",
+          "isCorrect": true
+        },
+        {
+          "question": "What is the main role of water molecules in the light-dependent reactions?",
+          "options": [
+            "To provide carbon for glucose synthesis",
+            "To act as an electron donor, replacing electrons lost by Photosystem II",
+            "To absorb excess light energy and prevent damage",
+            "To transport ATP out of the chloroplast"
+          ],
+          "correctAnswer": "To act as an electron donor, replacing electrons lost by Photosystem II",
+          "isCorrect": true
+        },
+        {
+          "question": "Which enzyme complex is responsible for synthesizing ATP using the proton gradient established across the thylakoid membrane?",
+          "options": [
+            "RuBisCO",
+            "NADP reductase",
+            "ATP synthase",
+            "Phosphofructokinase"
+          ],
+          "correctAnswer": "ATP synthase",
+          "isCorrect": false
+        }
+      ],
+      "clientTime": "2026-01-18T02:58:05.304Z"
+    },
+    {
+      "setId": "set_2",
+      "generatedAt": "2026-01-18T02:58:29.883142+00:00",
+      "focus": {
+        "basedOnSubmittedAt": "2026-01-18T02:58:05.353400+00:00"
+      },
+      "questions": [
+        {
+          "question": "Within a chloroplast, the elaborate folded membrane system responsible for containing the chlorophyll molecules that absorb light is known as the:",
+          "options": [
+            "Thylakoid membrane",
+            "Stroma",
+            "Outer chloroplast membrane",
+            "Inner chloroplast membrane"
+          ],
+          "correctAnswer": "Thylakoid membrane",
+          "isCorrect": true
+        },
+        {
+          "question": "The process of photolysis, essential for providing electrons to the electron transport chain in the light reactions, involves the splitting of which molecule?",
+          "options": [
+            "Water",
+            "Carbon dioxide",
+            "Glucose",
+            "ATP"
+          ],
+          "correctAnswer": "Water",
+          "isCorrect": false
+        },
+        {
+          "question": "Which specialized protein complex facilitates the diffusion of protons (H+ ions) from the thylakoid lumen to the stroma, coupling this movement with the synthesis of ATP?",
+          "options": [
+            "ATP synthase",
+            "Photosystem II",
+            "Cytochrome complex",
+            "Rubisco"
+          ],
+          "correctAnswer": "ATP synthase",
+          "isCorrect": false
+        },
+        {
+          "question": "What is the initial energy source that excites electrons within Photosystem II, leading to their transfer through the electron transport chain?",
+          "options": [
+            "Light energy",
+            "Chemical energy from glucose",
+            "Heat energy",
+            "Kinetic energy of water molecules"
+          ],
+          "correctAnswer": "Light energy",
+          "isCorrect": false
+        },
+        {
+          "question": "If a scientist were to isolate the specific membrane structures where a significant proton gradient is established to drive ATP production in photosynthesis, they would primarily be studying the:",
+          "options": [
+            "Thylakoid membranes",
+            "Chloroplast stroma",
+            "Mitochondrial cristae",
+            "Cell wall"
+          ],
+          "correctAnswer": "Thylakoid membranes",
+          "isCorrect": false
+        }
+      ],
+      "submittedAt": "2026-01-18T02:58:54.639564+00:00",
+      "clientTime": "2026-01-18T02:58:54.601Z"
+    }
+  ],
+  "activeSetId": "set_2"
+}

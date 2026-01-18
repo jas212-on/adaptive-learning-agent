@@ -1,6 +1,7 @@
+import { forwardRef } from 'react'
 import { cn } from '../../lib/cn'
 
-export function Badge({ className, variant = 'neutral', ...props }) {
+export const Badge = forwardRef(function Badge({ className, variant = 'neutral', ...props }, ref) {
   const variants = {
     neutral: 'border border-white/10 bg-white/5 text-white/70',
     primary: 'border border-indigo-500/30 bg-indigo-500/15 text-indigo-300',
@@ -10,6 +11,7 @@ export function Badge({ className, variant = 'neutral', ...props }) {
 
   return (
     <span
+      ref={ref}
       className={cn(
         'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium',
         variants[variant],
@@ -18,4 +20,4 @@ export function Badge({ className, variant = 'neutral', ...props }) {
       {...props}
     />
   )
-}
+})

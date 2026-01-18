@@ -18,7 +18,6 @@ export function ensureModule(progress, moduleId) {
     progress[moduleId] || {
       explainer: false,
       resources: false,
-      questions: false,
       quiz: false,
     }
   )

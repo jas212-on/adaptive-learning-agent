@@ -1,0 +1,132 @@
+{
+  "hash": "bbe830aa20e3c9457853c92a5368c8bf403daa4635407f9bebca151c18f85b9b",
+  "generatedAt": "2026-01-18T02:40:07.663611+00:00",
+  "updatedAt": "2026-01-18T02:40:07.663611+00:00",
+  "topicTitle": "Algebra",
+  "topicId": "algebra",
+  "subtopicTitle": "Equations",
+  "subtopicId": "equations",
+  "questions": [
+    {
+      "question": "Which of the following best defines an algebraic equation?",
+      "options": [
+        "A mathematical statement with only numbers and an equals sign.",
+        "A mathematical statement showing two expressions are equal.",
+        "A mathematical expression without an equals sign.",
+        "A rule describing a pattern of numbers."
+      ],
+      "correctAnswer": "A mathematical statement showing two expressions are equal.",
+      "isCorrect": null
+    },
+    {
+      "question": "What is the value of x in the equation x + 7 = 15?",
+      "options": [
+        "8",
+        "22",
+        "7",
+        "15"
+      ],
+      "correctAnswer": "8",
+      "isCorrect": null
+    },
+    {
+      "question": "Solve for y in the equation 4y = 20.",
+      "options": [
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "correctAnswer": "5",
+      "isCorrect": null
+    },
+    {
+      "question": "What does it mean for a number to be a 'solution' to an equation?",
+      "options": [
+        "It is the largest number in the equation.",
+        "It is the number that appears most frequently.",
+        "When substituted for the variable, it makes the equation true.",
+        "It is the final answer after all calculations are done."
+      ],
+      "correctAnswer": "When substituted for the variable, it makes the equation true.",
+      "isCorrect": null
+    },
+    {
+      "question": "Find the value of z in the equation 2z - 3 = 11.",
+      "options": [
+        "4",
+        "7",
+        "14",
+        "28"
+      ],
+      "correctAnswer": "7",
+      "isCorrect": null
+    }
+  ],
+  "sets": [
+    {
+      "setId": "set_1",
+      "generatedAt": "2026-01-18T02:40:07.663611+00:00",
+      "submittedAt": null,
+      "focus": null,
+      "questions": [
+        {
+          "question": "Which of the following best defines an algebraic equation?",
+          "options": [
+            "A mathematical statement with only numbers and an equals sign.",
+            "A mathematical statement showing two expressions are equal.",
+            "A mathematical expression without an equals sign.",
+            "A rule describing a pattern of numbers."
+          ],
+          "correctAnswer": "A mathematical statement showing two expressions are equal.",
+          "isCorrect": null
+        },
+        {
+          "question": "What is the value of x in the equation x + 7 = 15?",
+          "options": [
+            "8",
+            "22",
+            "7",
+            "15"
+          ],
+          "correctAnswer": "8",
+          "isCorrect": null
+        },
+        {
+          "question": "Solve for y in the equation 4y = 20.",
+          "options": [
+            "4",
+            "5",
+            "16",
+            "24"
+          ],
+          "correctAnswer": "5",
+          "isCorrect": null
+        },
+        {
+          "question": "What does it mean for a number to be a 'solution' to an equation?",
+          "options": [
+            "It is the largest number in the equation.",
+            "It is the number that appears most frequently.",
+            "When substituted for the variable, it makes the equation true.",
+            "It is the final answer after all calculations are done."
+          ],
+          "correctAnswer": "When substituted for the variable, it makes the equation true.",
+          "isCorrect": null
+        },
+        {
+          "question": "Find the value of z in the equation 2z - 3 = 11.",
+          "options": [
+            "4",
+            "7",
+            "14",
+            "28"
+          ],
+          "correctAnswer": "7",
+          "isCorrect": null
+        }
+      ]
+    }
+  ],
+  "activeSetId": "set_1"
+}
