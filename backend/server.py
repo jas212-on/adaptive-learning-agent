@@ -1717,3 +1717,78 @@ def get_suggestions(force: bool = False):
         _suggestions_cache[cache_key] = response_data
         
         return SuggestionsResponse(**response_data)
+
+
+# ============================= Topic Assistant Endpoint =============================
+
+class AssistantMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
+class AssistantChatRequest(BaseModel):
+    topicTitle: str
+    question: str
+    history: list[AssistantMessage] = []
+
+
+class AssistantChatResponse(BaseModel):
+    answer: str
+
+
+def _build_assistant_prompt(topic_title: str, question: str, history: list[AssistantMessage]) -> str:
+    """Build a prompt for the topic assistant."""
+    history_text = ""
+    if history:
+        history_lines = []
+        for msg in history[-10:]:  # Keep last 10 messages
+            role = "Student" if msg.role == "user" else "Assistant"
+            history_lines.append(f"{role}: {msg.content}")
+        history_text = "\n".join(history_lines)
+        history_text = f"\nPrevious conversation:\n{history_text}\n"
+
+    return f"""You are a helpful learning assistant specializing in "{topic_title}". Your role is to:
+1. Answer questions clearly and concisely about this topic
+2. Clarify doubts and explain concepts in simple terms
+3. Provide relevant examples when helpful
+4. Stay focused on the topic - politely redirect if asked about unrelated subjects
+
+IMPORTANT: Keep your responses concise (2-4 paragraphs max). Use simple language appropriate for a student learning this topic.
+{history_text}
+Student's question: {question}
+
+Provide a helpful, focused answer:"""
+
+
+@app.post("/assistant/chat", response_model=AssistantChatResponse)
+def assistant_chat(body: AssistantChatRequest):
+    """
+    Simple topic-focused chatbot using Gemini.
+    Answers questions and clarifies doubts about a specific topic.
+    """
+    if not body.question.strip():
+        raise HTTPException(status_code=400, detail="Question is required")
+    
+    if not body.topicTitle.strip():
+        raise HTTPException(status_code=400, detail="Topic title is required")
+    
+    try:
+        from llm.gemini import ask_gemini
+    except ImportError:
+        try:
+            from backend.llm.gemini import ask_gemini
+        except ImportError:
+            raise HTTPException(status_code=503, detail="Gemini module not available")
+    
+    try:
+        prompt = _build_assistant_prompt(body.topicTitle, body.question, body.history)
+        answer = ask_gemini(prompt)
+        
+        # Clean up the response
+        answer = answer.strip()
+        if not answer:
+            answer = "I'm sorry, I couldn't generate a response. Please try rephrasing your question."
+        
+        return AssistantChatResponse(answer=answer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")

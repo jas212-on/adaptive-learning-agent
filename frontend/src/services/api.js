@@ -619,3 +619,21 @@ export function getResumeLearningInfo(topicId, topic, progress) {
   }
 }
 
+/**
+ * Ask the topic assistant a question about a specific topic.
+ * @param {string} topicTitle - The topic being discussed
+ * @param {string} question - The user's question
+ * @param {Array} history - Previous messages in the conversation
+ * @returns {Promise<{answer: string}>}
+ */
+export async function askTopicAssistant(topicTitle, question, history = []) {
+  return apiFetch('/assistant/chat', {
+    method: 'POST',
+    body: {
+      topicTitle,
+      question,
+      history: history.slice(-10), // Keep last 10 messages for context
+    },
+  })
+}
+

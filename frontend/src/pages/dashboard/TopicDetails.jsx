@@ -53,7 +53,6 @@ export default function TopicDetails() {
   const [topic, setTopic] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showProgressOverlay, setShowProgressOverlay] = useState(false)
 
   // Get module and step from URL params
   const activeModule = searchParams.get('module')
@@ -311,7 +310,7 @@ export default function TopicDetails() {
         {/* Floating Action Button */}
         <FloatingActionButton
           topicId={topicId}
-          onViewProgress={() => setShowProgressOverlay(true)}
+          topicTitle={topic?.title}
           onExportSummary={handleExportSummary}
         />
       </div>
