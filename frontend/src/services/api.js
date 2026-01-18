@@ -365,14 +365,23 @@ export async function getAnalytics() {
   }
 }
 
-export async function getSuggestions() {
-  await sleep(500)
-  return {
-    suggestions: [
-      { id: uid('s'), title: 'Learn state management basics', reason: 'Often paired with React Hooks' },
-      { id: uid('s'), title: 'Practice SQL aggregate queries', reason: 'Natural follow-up to joins' },
-      { id: uid('s'), title: 'Review time complexity', reason: 'Helps analyze scheduling trade-offs' },
-    ],
+export async function getSuggestions(force = false) {
+  const params = new URLSearchParams()
+  if (force) params.set('force', 'true')
+  
+  try {
+    return await apiFetch(`/suggestions?${params.toString()}`)
+  } catch (e) {
+    // Fallback if backend isn't running
+    await sleep(500)
+    return {
+      suggestions: [
+        { id: 'fallback-1', title: 'Learn state management basics', reason: 'Often paired with React Hooks', priority: 'high', category: 'parallel', relatedTo: [] },
+        { id: 'fallback-2', title: 'Practice SQL aggregate queries', reason: 'Natural follow-up to joins', priority: 'medium', category: 'advanced', relatedTo: [] },
+        { id: 'fallback-3', title: 'Review time complexity', reason: 'Helps analyze scheduling trade-offs', priority: 'medium', category: 'prerequisite', relatedTo: [] },
+      ],
+      error: 'Using fallback suggestions - backend not available',
+    }
   }
 }
 

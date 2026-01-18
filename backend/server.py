@@ -1568,3 +1568,152 @@ def get_analytics():
     }
 
 
+# ============================= Suggestions Endpoint =============================
+
+_suggestions_lock = threading.Lock()
+_suggestions_cache: dict[str, Any] = {}
+
+
+def _build_suggestions_prompt(topics: list[DetectedTopic]) -> str:
+    """Build a prompt for Gemini to generate topic suggestions."""
+    if not topics:
+        return ""
+    
+    topics_info = []
+    for t in topics[:10]:  # Limit to 10 topics
+        subtopics_str = ", ".join(t.subtopics[:5]) if t.subtopics else "none"
+        tags_str = ", ".join(t.tags[:5]) if t.tags else "none"
+        topics_info.append(
+            f"- {t.title} (level: {t.level}, confidence: {t.confidence or 'unknown'}, "
+            f"subtopics: [{subtopics_str}], tags: [{tags_str}])"
+        )
+    
+    topics_list = "\n".join(topics_info)
+    
+    return f"""You are an intelligent learning assistant. Based on the following detected topics that a student is currently learning, suggest 5-8 related topics or concepts they should explore next.
+
+DETECTED TOPICS:
+{topics_list}
+
+For each suggestion, provide:
+1. A clear, concise title (2-6 words)
+2. A brief reason why this topic is relevant (1 sentence, relate it to detected topics)
+3. A priority level: "high", "medium", or "low"
+4. A category: "prerequisite" (should learn first), "parallel" (can learn alongside), or "advanced" (learn after mastering current)
+
+Return ONLY valid JSON in this exact format, no extra text:
+{{
+  "suggestions": [
+    {{
+      "title": "Topic Title",
+      "reason": "Why this is relevant to their learning path",
+      "priority": "high",
+      "category": "parallel",
+      "relatedTo": ["topic name it relates to"]
+    }}
+  ]
+}}
+"""
+
+
+def _generate_suggestions_with_gemini(topics: list[DetectedTopic]) -> dict[str, Any]:
+    """Generate suggestions using Gemini AI."""
+    if not topics:
+        return {"suggestions": []}
+    
+    prompt = _build_suggestions_prompt(topics)
+    if not prompt:
+        return {"suggestions": []}
+    
+    try:
+        from llm.gemini import ask_gemini
+    except ImportError:
+        try:
+            from backend.llm.gemini import ask_gemini
+        except ImportError:
+            return {"suggestions": [], "error": "Gemini module not available"}
+    
+    try:
+        response = ask_gemini(prompt)
+        result = _extract_json_object(response)
+        if result and isinstance(result.get("suggestions"), list):
+            # Add unique IDs to each suggestion
+            for i, s in enumerate(result["suggestions"]):
+                s["id"] = f"sug-{i+1}-{_slugify(s.get('title', 'unknown'))[:20]}"
+            return result
+        return {"suggestions": [], "error": "Invalid response format"}
+    except Exception as e:
+        return {"suggestions": [], "error": str(e)}
+
+
+class SuggestionItem(BaseModel):
+    id: str
+    title: str
+    reason: str
+    priority: str = "medium"
+    category: str = "parallel"
+    relatedTo: list[str] = []
+
+
+class SuggestionsResponse(BaseModel):
+    suggestions: list[SuggestionItem]
+    generatedAt: str | None = None
+    basedOnTopics: list[str] = []
+    error: str | None = None
+
+
+@app.get("/suggestions", response_model=SuggestionsResponse)
+def get_suggestions(force: bool = False):
+    """
+    Generate AI-powered learning suggestions based on detected topics.
+    
+    Uses Gemini to analyze detected topics and suggest related concepts,
+    prerequisites, and advanced topics the student should explore.
+    """
+    global _suggestions_cache
+    
+    # Get current topics
+    entries = _read_output_entries()
+    topics = _build_topics_from_entries(entries)
+    
+    if not topics:
+        return SuggestionsResponse(
+            suggestions=[],
+            generatedAt=datetime.now(timezone.utc).isoformat(),
+            basedOnTopics=[],
+            error="No topics detected yet. Start detection to get personalized suggestions."
+        )
+    
+    # Create cache key based on topic IDs
+    topic_ids = sorted([t.id for t in topics])
+    cache_key = ":".join(topic_ids)
+    
+    with _suggestions_lock:
+        # Check cache unless force refresh
+        if not force and cache_key in _suggestions_cache:
+            cached = _suggestions_cache[cache_key]
+            # Return cached if less than 30 minutes old
+            cached_time = cached.get("generatedAt")
+            if cached_time:
+                try:
+                    gen_dt = datetime.fromisoformat(cached_time.replace("Z", "+00:00"))
+                    if (datetime.now(timezone.utc) - gen_dt).total_seconds() < 1800:
+                        return SuggestionsResponse(**cached)
+                except Exception:
+                    pass
+        
+        # Generate new suggestions
+        result = _generate_suggestions_with_gemini(topics)
+        
+        generated_at = datetime.now(timezone.utc).isoformat()
+        response_data = {
+            "suggestions": result.get("suggestions", []),
+            "generatedAt": generated_at,
+            "basedOnTopics": [t.title for t in topics],
+            "error": result.get("error"),
+        }
+        
+        # Cache the result
+        _suggestions_cache[cache_key] = response_data
+        
+        return SuggestionsResponse(**response_data)
