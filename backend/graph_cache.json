@@ -110,5 +110,40 @@
     "Chloroplasts and Pigments",
     "Reactants and Products",
     "Factors Affecting Rate"
+  ],
+  "9c79bf94ac52b011": [
+    "Basic Tree Terminology",
+    "Tree Traversal Algorithms",
+    "Tree Representation Methods",
+    "Basic Tree Operations",
+    "Binary Search Trees"
+  ],
+  "4f11e9a66ea066aa": [
+    "Root Systems",
+    "Trunk Structure",
+    "Branch Anatomy",
+    "Leaf Morphology",
+    "Tree Form"
+  ],
+  "0f5834431f1dfec5": [
+    "Inorder Traversal",
+    "Preorder Traversal",
+    "Postorder Traversal",
+    "Level Order Traversal",
+    "Recursive vs Iterative"
+  ],
+  "2341b477d5e93596": [
+    "Linked Node Structures",
+    "Array-based Storage",
+    "Parent Array Encoding",
+    "Child Pointers Representation",
+    "Tree Serialization Methods"
+  ],
+  "1d51b2492c0949f2": [
+    "Node Insertion",
+    "Node Deletion",
+    "Node Search",
+    "Tree Traversal",
+    "Find Min Max"
   ]
 }

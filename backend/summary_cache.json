@@ -46,5 +46,9 @@
   "photosynthesis": {
     "hash": "5077ee299015348cbb6481cf994a725f8a1788d7c2cd737df92aa2c9dbbc80a4",
     "summary": "Here's a summary of the captured content focusing on educational concepts:\n\n*   The central educational concept highlighted is **Photosynthesis**.\n*   The content primarily displays video resources related to this topic.\n*   An introductory video on Photosynthesis is featured from the **Amoeba Sisters** channel.\n*   A more detailed explanation, titled \"Photosynthesis (in detail)\", is available from **Beverly Biology**."
+  },
+  "binary-tree-data-structure": {
+    "hash": "072d954ff1971b1643465af828d637fe50e1ae316956adc3a4ea7f24c8886fff",
+    "summary": "Here's a summary of the captured content:\n\n*   **Binary Tree Terminology**: Key concepts include parent nodes, left children, right children, and paths connecting nodes.\n*   **Special Node Types**: Identify the \"Root\" node of a tree or a subtree, and \"Leaf nodes\" which are nodes without any children.\n*   **Introduction & Basic Operations**: The content introduces the fundamental concepts of binary trees and their essential operations.\n*   **Tree Construction**: Learn methods to construct a binary tree, specifically from its Inorder and Level order traversals.\n*   **Advanced Topics**: Explore concepts such as cloning a binary tree with random pointers and finding all possible binary trees for a given Inorder traversal."
   }
 }
