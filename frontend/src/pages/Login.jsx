@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, LockKeyhole, LogIn, Sparkles } from 'lucide-react'
 import { useAuth } from '../providers/AuthProvider'
 import { Button } from '../components/ui/Button'
@@ -11,9 +11,10 @@ import DarkVeil from '../components/ui/DarkVeil'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
-  const [email, setEmail] = useState('demo@adaptive.ai')
-  const [password, setPassword] = useState('password')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -23,7 +24,8 @@ export default function Login() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate('/detection')
+      const from = location?.state?.from
+      navigate(typeof from === 'string' && from ? from : '/detection', { replace: true })
     } catch (err) {
       setError(err?.message || 'Login failed')
     } finally {
@@ -57,7 +59,7 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-4 text-sm font-light leading-relaxed text-white/65 sm:text-base">
-            Sign in to continue your learning session, generate roadmaps, and track progress across detected topics.
+            Login to continue your learning session, generate roadmaps, and track progress across detected topics.
           </p>
 
           <div className="mt-8 grid gap-3 text-sm font-light text-white/60">
@@ -80,7 +82,7 @@ export default function Login() {
           <Card className="rounded-3xl border border-white/10 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] backdrop-blur-xl">
             <CardHeader className="border-white/10">
               <CardTitle className="flex items-center gap-2 text-white">
-                <LogIn size={18} /> Sign in
+                <LogIn size={18} /> Login
               </CardTitle>
               <p className="mt-2 text-xs font-light leading-relaxed text-white/55">
                 Use your email and password to access your dashboard.
@@ -122,7 +124,7 @@ export default function Login() {
                   disabled={loading}
                 >
                   {loading ? <Spinner /> : <LogIn size={18} />}
-                  {loading ? 'Signing in…' : 'Sign in'}
+                  {loading ? 'Logging in…' : 'Login'}
                 </Button>
 
                 <div className="flex flex-col gap-2 pt-1 text-xs font-light text-white/55">

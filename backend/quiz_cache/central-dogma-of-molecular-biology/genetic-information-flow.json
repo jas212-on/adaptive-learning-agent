@@ -1,0 +1,132 @@
+{
+  "hash": "67dc6b23a987109eda7e425ba59eab62ca36e9eca6192c02fb701fc4ef9ac575",
+  "generatedAt": "2026-01-19T11:50:12.320302+00:00",
+  "updatedAt": "2026-01-19T11:50:12.320329+00:00",
+  "topicTitle": "Central Dogma of Molecular Biology",
+  "topicId": "central-dogma-of-molecular-biology",
+  "subtopicTitle": "Genetic information flow",
+  "subtopicId": "genetic-information-flow",
+  "questions": [
+    {
+      "question": "According to the Central Dogma of Molecular Biology, what is the primary flow of genetic information?",
+      "options": [
+        "Protein → RNA → DNA",
+        "RNA → DNA → Protein",
+        "DNA → RNA → Protein",
+        "DNA → Protein → RNA"
+      ],
+      "correctAnswer": "DNA → RNA → Protein",
+      "isCorrect": null
+    },
+    {
+      "question": "The process by which genetic information is copied from DNA into a messenger RNA (mRNA) molecule is called:",
+      "options": [
+        "Translation",
+        "Replication",
+        "Transcription",
+        "Reverse Transcription"
+      ],
+      "correctAnswer": "Transcription",
+      "isCorrect": null
+    },
+    {
+      "question": "Which type of RNA molecule carries the genetic code from the nucleus (in eukaryotes) to the cytoplasm to direct protein synthesis?",
+      "options": [
+        "Ribosomal RNA (rRNA)",
+        "Transfer RNA (tRNA)",
+        "Messenger RNA (mRNA)",
+        "Small nuclear RNA (snRNA)"
+      ],
+      "correctAnswer": "Messenger RNA (mRNA)",
+      "isCorrect": null
+    },
+    {
+      "question": "During the process of translation, the genetic information encoded in mRNA is used to synthesize which type of molecule?",
+      "options": [
+        "A new DNA strand",
+        "A carbohydrate",
+        "A protein",
+        "A lipid molecule"
+      ],
+      "correctAnswer": "A protein",
+      "isCorrect": null
+    },
+    {
+      "question": "Which enzyme is responsible for synthesizing an RNA strand using a DNA template during transcription?",
+      "options": [
+        "DNA ligase",
+        "RNA polymerase",
+        "DNA polymerase",
+        "Reverse transcriptase"
+      ],
+      "correctAnswer": "RNA polymerase",
+      "isCorrect": null
+    }
+  ],
+  "sets": [
+    {
+      "setId": "set_1",
+      "generatedAt": "2026-01-19T11:50:12.320334+00:00",
+      "submittedAt": null,
+      "focus": null,
+      "questions": [
+        {
+          "question": "According to the Central Dogma of Molecular Biology, what is the primary flow of genetic information?",
+          "options": [
+            "Protein → RNA → DNA",
+            "RNA → DNA → Protein",
+            "DNA → RNA → Protein",
+            "DNA → Protein → RNA"
+          ],
+          "correctAnswer": "DNA → RNA → Protein",
+          "isCorrect": null
+        },
+        {
+          "question": "The process by which genetic information is copied from DNA into a messenger RNA (mRNA) molecule is called:",
+          "options": [
+            "Translation",
+            "Replication",
+            "Transcription",
+            "Reverse Transcription"
+          ],
+          "correctAnswer": "Transcription",
+          "isCorrect": null
+        },
+        {
+          "question": "Which type of RNA molecule carries the genetic code from the nucleus (in eukaryotes) to the cytoplasm to direct protein synthesis?",
+          "options": [
+            "Ribosomal RNA (rRNA)",
+            "Transfer RNA (tRNA)",
+            "Messenger RNA (mRNA)",
+            "Small nuclear RNA (snRNA)"
+          ],
+          "correctAnswer": "Messenger RNA (mRNA)",
+          "isCorrect": null
+        },
+        {
+          "question": "During the process of translation, the genetic information encoded in mRNA is used to synthesize which type of molecule?",
+          "options": [
+            "A new DNA strand",
+            "A carbohydrate",
+            "A protein",
+            "A lipid molecule"
+          ],
+          "correctAnswer": "A protein",
+          "isCorrect": null
+        },
+        {
+          "question": "Which enzyme is responsible for synthesizing an RNA strand using a DNA template during transcription?",
+          "options": [
+            "DNA ligase",
+            "RNA polymerase",
+            "DNA polymerase",
+            "Reverse transcriptase"
+          ],
+          "correctAnswer": "RNA polymerase",
+          "isCorrect": null
+        }
+      ]
+    }
+  ],
+  "activeSetId": "set_1"
+}

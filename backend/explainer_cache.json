@@ -1,276 +1,67 @@
 {
-  "key-molecules-of-life:dna-structure": {
-    "overview": "DNA, or Deoxyribonucleic Acid, is the fundamental genetic material in all living organisms. Its iconic double helix structure allows it to store and transmit hereditary information with high stability and fidelity. Understanding its precise arrangement of components is crucial for comprehending how genetic information is encoded and utilized.",
+  "central-dogma-of-molecular-biology:genetic-information-flow": {
+    "overview": "Genetic information flow describes the fundamental processes by which genetic instructions encoded in DNA are expressed to build and maintain an organism. It primarily involves the transfer of information from DNA to RNA (transcription) and then from RNA to protein (translation). This concept, along with DNA replication, forms the basis of the Central Dogma of Molecular Biology, illustrating how hereditary information guides cellular function.",
     "prerequisites": [
-      "Basic cell structure (nucleus, cytoplasm)",
-      "Concept of monomers and polymers",
-      "Understanding of chemical bonds (covalent, hydrogen)",
-      "Basic knowledge of organic molecules (sugars, phosphates)",
-      "Concept of information storage in biological systems"
+      "Basic understanding of cell structure (nucleus, cytoplasm, ribosomes)",
+      "Knowledge of DNA as the genetic material and its double helix structure",
+      "Familiarity with RNA as a nucleic acid molecule",
+      "Basic concept of proteins and their diverse functions",
+      "Understanding of nitrogenous bases (Adenine, Thymine, Cytosine, Guanine, Uracil)",
+      "The idea of genes carrying hereditary information"
     ],
     "keyIdeas": [
-      "DNA exists as a double helix, resembling a twisted ladder.",
-      "The basic building block is a nucleotide, consisting of a deoxyribose sugar, a phosphate group, and a nitrogenous base.",
-      "There are four nitrogenous bases: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).",
-      "Specific base pairing occurs: A always pairs with T (via two hydrogen bonds), and G always pairs with C (via three hydrogen bonds).",
-      "The 'sides' of the ladder are alternating sugar and phosphate groups, forming a strong sugar-phosphate backbone linked by phosphodiester bonds.",
-      "The two strands of the double helix are antiparallel, meaning they run in opposite 5' to 3' directions.",
-      "The sequence of nitrogenous bases along a strand encodes genetic information."
+      "Replication:** DNA makes copies of itself, ensuring genetic continuity during cell division.",
+      "Transcription:** The genetic code from a DNA segment is copied into a messenger RNA (mRNA) molecule.",
+      "Translation:** Ribosomes use the mRNA sequence to synthesize a specific protein, guided by transfer RNA (tRNA) and ribosomal RNA (rRNA).",
+      "Central Dogma:** The primary flow of genetic information is generally from DNA to RNA to Protein.",
+      "The genetic code defines how sequences of three mRNA nucleotides (codons) correspond to specific amino acids.",
+      "Each type of RNA (mRNA, tRNA, rRNA) plays a distinct and crucial role in protein synthesis.",
+      "This directional flow ensures that genetic instructions stored in DNA are accurately converted into functional proteins."
     ],
     "pitfalls": [
-      "Confusing DNA's structure or components with that of RNA (e.g., deoxyribose vs. ribose sugar, Thymine vs. Uracil).",
-      "Incorrectly remembering the base pairing rules (e.g., A pairing with G, or T with C).",
-      "Misunderstanding the difference between the strong covalent bonds in the backbone and the weaker hydrogen bonds between bases.",
-      "Forgetting that DNA strands are antiparallel and the implications of this orientation.",
-      "Not recognizing that a nucleotide consists of all three components: sugar, phosphate, and base.",
-      "Overlooking the significance of the major and minor grooves for protein binding."
+      "Confusing the distinct processes of replication, transcription, and translation.",
+      "Assuming genetic information always flows strictly from DNA to RNA to protein without exceptions (e.g., retroviruses and reverse transcriptase).",
+      "Not understanding the specific roles of mRNA, tRNA, and rRNA in protein synthesis.",
+      "Overlooking the crucial role of DNA replication in heredity and cell proliferation.",
+      "Mistaking the genetic code for the sequence of bases itself, rather than the set of rules for translating mRNA into amino acids.",
+      "Forgetting that not all RNA molecules are translated into proteins (e.g., rRNA, tRNA, regulatory RNAs)."
     ],
     "sections": [
       {
         "title": "Prerequisites",
         "bullets": [
-          "Basic cell structure (nucleus, cytoplasm)",
-          "Concept of monomers and polymers",
-          "Understanding of chemical bonds (covalent, hydrogen)",
-          "Basic knowledge of organic molecules (sugars, phosphates)",
-          "Concept of information storage in biological systems"
+          "Basic understanding of cell structure (nucleus, cytoplasm, ribosomes)",
+          "Knowledge of DNA as the genetic material and its double helix structure",
+          "Familiarity with RNA as a nucleic acid molecule",
+          "Basic concept of proteins and their diverse functions",
+          "Understanding of nitrogenous bases (Adenine, Thymine, Cytosine, Guanine, Uracil)",
+          "The idea of genes carrying hereditary information"
         ]
       },
       {
         "title": "Key Ideas",
         "bullets": [
-          "DNA exists as a double helix, resembling a twisted ladder.",
-          "The basic building block is a nucleotide, consisting of a deoxyribose sugar, a phosphate group, and a nitrogenous base.",
-          "There are four nitrogenous bases: Adenine (A), Guanine (G), Cytosine (C), and Thymine (T).",
-          "Specific base pairing occurs: A always pairs with T (via two hydrogen bonds), and G always pairs with C (via three hydrogen bonds).",
-          "The 'sides' of the ladder are alternating sugar and phosphate groups, forming a strong sugar-phosphate backbone linked by phosphodiester bonds.",
-          "The two strands of the double helix are antiparallel, meaning they run in opposite 5' to 3' directions.",
-          "The sequence of nitrogenous bases along a strand encodes genetic information."
+          "Replication:** DNA makes copies of itself, ensuring genetic continuity during cell division.",
+          "Transcription:** The genetic code from a DNA segment is copied into a messenger RNA (mRNA) molecule.",
+          "Translation:** Ribosomes use the mRNA sequence to synthesize a specific protein, guided by transfer RNA (tRNA) and ribosomal RNA (rRNA).",
+          "Central Dogma:** The primary flow of genetic information is generally from DNA to RNA to Protein.",
+          "The genetic code defines how sequences of three mRNA nucleotides (codons) correspond to specific amino acids.",
+          "Each type of RNA (mRNA, tRNA, rRNA) plays a distinct and crucial role in protein synthesis.",
+          "This directional flow ensures that genetic instructions stored in DNA are accurately converted into functional proteins."
         ]
       },
       {
         "title": "Pitfalls",
         "bullets": [
-          "Confusing DNA's structure or components with that of RNA (e.g., deoxyribose vs. ribose sugar, Thymine vs. Uracil).",
-          "Incorrectly remembering the base pairing rules (e.g., A pairing with G, or T with C).",
-          "Misunderstanding the difference between the strong covalent bonds in the backbone and the weaker hydrogen bonds between bases.",
-          "Forgetting that DNA strands are antiparallel and the implications of this orientation.",
-          "Not recognizing that a nucleotide consists of all three components: sugar, phosphate, and base.",
-          "Overlooking the significance of the major and minor grooves for protein binding."
+          "Confusing the distinct processes of replication, transcription, and translation.",
+          "Assuming genetic information always flows strictly from DNA to RNA to protein without exceptions (e.g., retroviruses and reverse transcriptase).",
+          "Not understanding the specific roles of mRNA, tRNA, and rRNA in protein synthesis.",
+          "Overlooking the crucial role of DNA replication in heredity and cell proliferation.",
+          "Mistaking the genetic code for the sequence of bases itself, rather than the set of rules for translating mRNA into amino acids.",
+          "Forgetting that not all RNA molecules are translated into proteins (e.g., rRNA, tRNA, regulatory RNAs)."
         ]
       }
     ],
-    "generatedAt": "2026-01-17T20:59:34.516188+00:00"
-  },
-  "key-molecules-of-life:proteins": {
-    "overview": "Proteins are highly diverse macromolecules essential for virtually every cellular process. They are polymers built from amino acid monomers, linked together by peptide bonds to form polypeptide chains. The unique sequence and three-dimensional folding of these chains determine a protein's specific function, ranging from structural support to enzymatic catalysis and immune defense.",
-    "prerequisites": [
-      "Basic understanding of atoms and molecules (C, H, O, N)",
-      "Concept of monomers and polymers",
-      "Knowledge of covalent bonds",
-      "Introduction to biological macromolecules",
-      "Basic understanding of cells and their components",
-      "Concept of pH and its impact on biological systems",
-      "General idea of genetic information (DNA/RNA) encoding instructions"
-    ],
-    "keyIdeas": [
-      "Proteins are polymers of amino acids, linked by peptide bonds.",
-      "There are 20 common amino acids, each with a unique 'R-group' determining its properties.",
-      "Proteins have four levels of structure: primary (amino acid sequence), secondary (alpha-helices, beta-sheets), tertiary (3D fold), and quaternary (multiple polypeptide chains).",
-      "A protein's specific three-dimensional shape is crucial for its function.",
-      "Proteins perform diverse roles, including catalysis (enzymes), structural support, transport, signaling, and immunity.",
-      "Denaturation is the loss of a protein's 3D structure (and thus function) due to changes in temperature, pH, or chemical environment.",
-      "The genetic code in DNA ultimately dictates the primary sequence of amino acids in a protein."
-    ],
-    "pitfalls": [
-      "Confusing the primary amino acid sequence directly with function, rather than through its role in determining structure.",
-      "Assuming all proteins have a quaternary structure.",
-      "Underestimating the critical role of the R-group in amino acid diversity and protein folding.",
-      "Believing that denaturation is always irreversible.",
-      "Thinking that all proteins are enzymes.",
-      "Not distinguishing between the different types of bonds (peptide vs. hydrogen vs. disulfide) involved in protein structure.",
-      "Overlooking the importance of the cellular environment (e.g., pH, temperature) in maintaining protein structure and function."
-    ],
-    "sections": [
-      {
-        "title": "Prerequisites",
-        "bullets": [
-          "Basic understanding of atoms and molecules (C, H, O, N)",
-          "Concept of monomers and polymers",
-          "Knowledge of covalent bonds",
-          "Introduction to biological macromolecules",
-          "Basic understanding of cells and their components",
-          "Concept of pH and its impact on biological systems",
-          "General idea of genetic information (DNA/RNA) encoding instructions"
-        ]
-      },
-      {
-        "title": "Key Ideas",
-        "bullets": [
-          "Proteins are polymers of amino acids, linked by peptide bonds.",
-          "There are 20 common amino acids, each with a unique 'R-group' determining its properties.",
-          "Proteins have four levels of structure: primary (amino acid sequence), secondary (alpha-helices, beta-sheets), tertiary (3D fold), and quaternary (multiple polypeptide chains).",
-          "A protein's specific three-dimensional shape is crucial for its function.",
-          "Proteins perform diverse roles, including catalysis (enzymes), structural support, transport, signaling, and immunity.",
-          "Denaturation is the loss of a protein's 3D structure (and thus function) due to changes in temperature, pH, or chemical environment.",
-          "The genetic code in DNA ultimately dictates the primary sequence of amino acids in a protein."
-        ]
-      },
-      {
-        "title": "Pitfalls",
-        "bullets": [
-          "Confusing the primary amino acid sequence directly with function, rather than through its role in determining structure.",
-          "Assuming all proteins have a quaternary structure.",
-          "Underestimating the critical role of the R-group in amino acid diversity and protein folding.",
-          "Believing that denaturation is always irreversible.",
-          "Thinking that all proteins are enzymes.",
-          "Not distinguishing between the different types of bonds (peptide vs. hydrogen vs. disulfide) involved in protein structure.",
-          "Overlooking the importance of the cellular environment (e.g., pH, temperature) in maintaining protein structure and function."
-        ]
-      }
-    ],
-    "generatedAt": "2026-01-17T21:01:04.015004+00:00"
-  },
-  "algebra:equations": {
-    "overview": "Equations are fundamental mathematical statements that assert the equality of two expressions. They typically involve variables, constants, and an equals sign, serving as a powerful tool to represent relationships and solve for unknown quantities. The primary goal when working with equations is often to find the value(s) of the variable(s) that make the statement true.",
-    "prerequisites": [
-      "Numbers and basic arithmetic operations (addition, subtraction, multiplication, division)",
-      "Order of Operations (PEMDAS/BODMAS)",
-      "Understanding of variables and constants",
-      "Concept of algebraic expressions",
-      "Properties of real numbers (commutative, associative, distributive)",
-      "Basic understanding of inequalities",
-      "Concept of 'equality'"
-    ],
-    "keyIdeas": [
-      "An equation shows that two mathematical expressions are equal.",
-      "The core principle of solving equations is to maintain balance: whatever operation is performed on one side must also be performed on the other.",
-      "Inverse operations are used to 'undo' operations and isolate the variable (e.g., addition undoes subtraction, multiplication undoes division).",
-      "The solution(s) to an equation are the value(s) of the variable(s) that make the equation a true statement.",
-      "Solutions can be verified by substituting them back into the original equation.",
-      "Equations can have one solution, no solutions, or infinitely many solutions."
-    ],
-    "pitfalls": [
-      "Forgetting to apply an operation to both sides of the equation, leading to an unbalanced statement.",
-      "Making sign errors, especially when distributing negative numbers or transposing terms.",
-      "Incorrectly applying the order of operations when simplifying expressions.",
-      "Confusing an expression with an equation (an equation *must* have an equals sign).",
-      "Dividing by a variable that could potentially be zero, which is undefined.",
-      "Not simplifying expressions on each side of the equation before attempting to isolate the variable.",
-      "Failing to check solutions, especially for equations that might introduce extraneous solutions."
-    ],
-    "sections": [
-      {
-        "title": "Prerequisites",
-        "bullets": [
-          "Numbers and basic arithmetic operations (addition, subtraction, multiplication, division)",
-          "Order of Operations (PEMDAS/BODMAS)",
-          "Understanding of variables and constants",
-          "Concept of algebraic expressions",
-          "Properties of real numbers (commutative, associative, distributive)",
-          "Basic understanding of inequalities",
-          "Concept of 'equality'"
-        ]
-      },
-      {
-        "title": "Key Ideas",
-        "bullets": [
-          "An equation shows that two mathematical expressions are equal.",
-          "The core principle of solving equations is to maintain balance: whatever operation is performed on one side must also be performed on the other.",
-          "Inverse operations are used to 'undo' operations and isolate the variable (e.g., addition undoes subtraction, multiplication undoes division).",
-          "The solution(s) to an equation are the value(s) of the variable(s) that make the equation a true statement.",
-          "Solutions can be verified by substituting them back into the original equation.",
-          "Equations can have one solution, no solutions, or infinitely many solutions."
-        ]
-      },
-      {
-        "title": "Pitfalls",
-        "bullets": [
-          "Forgetting to apply an operation to both sides of the equation, leading to an unbalanced statement.",
-          "Making sign errors, especially when distributing negative numbers or transposing terms.",
-          "Incorrectly applying the order of operations when simplifying expressions.",
-          "Confusing an expression with an equation (an equation *must* have an equals sign).",
-          "Dividing by a variable that could potentially be zero, which is undefined.",
-          "Not simplifying expressions on each side of the equation before attempting to isolate the variable.",
-          "Failing to check solutions, especially for equations that might introduce extraneous solutions."
-        ]
-      }
-    ],
-    "generatedAt": "2026-01-18T02:39:26.912673+00:00"
-  },
-  "photosynthesis:light-dependent-reactions": {
-    "overview": "The Light Dependent Reactions are the first stage of photosynthesis, where light energy is captured by pigments like chlorophyll. This energy is converted into chemical energy in the form of ATP and NADPH, which are crucial for the subsequent light-independent reactions. These reactions occur within the thylakoid membranes of chloroplasts and release oxygen as a byproduct.",
-    "prerequisites": [
-      "Basic understanding of plant cells and organelles, especially chloroplasts.",
-      "Concept of energy in biological systems (e.g., chemical energy, light energy).",
-      "General overview of photosynthesis as a process to convert light energy into chemical energy.",
-      "Understanding of ATP as an energy currency molecule.",
-      "Familiarity with the concept of electron carriers (e.g., NADP+).",
-      "Basic knowledge of pigments like chlorophyll and their role in light absorption.",
-      "The role of water in biological processes."
-    ],
-    "keyIdeas": [
-      "Location: Occur exclusively in the thylakoid membranes within chloroplasts.",
-      "Inputs: Light energy, water (H2O), ADP, and NADP+.",
-      "Outputs: ATP, NADPH, and oxygen (O2).",
-      "Photosystems: Light energy is absorbed by chlorophyll in Photosystem II and Photosystem I.",
-      "Electron Transport Chain: Excited electrons move through a series of protein complexes, releasing energy.",
-      "Photolysis: Water molecules are split to replace lost electrons, releasing protons (H+), electrons (e-), and oxygen (O2).",
-      "Chemiosmosis: The energy from electron transport is used to pump protons into the thylakoid lumen, creating a proton gradient.",
-      "ATP Synthesis: Protons flow back out of the lumen through ATP synthase, driving the production of ATP from ADP and Pi.",
-      "NADPH Production: Electrons are transferred to NADP+ to form NADPH, an energy-carrying molecule."
-    ],
-    "pitfalls": [
-      "Confusing the inputs and outputs with the Light-Independent Reactions (Calvin Cycle).",
-      "Believing that glucose is produced directly in the light-dependent reactions.",
-      "Not understanding the critical role of water splitting (photolysis) in replacing electrons and producing oxygen.",
-      "Misinterpreting oxygen as the primary goal of these reactions, rather than a byproduct.",
-      "Failing to grasp how the proton gradient across the thylakoid membrane drives ATP synthesis (chemiosmosis).",
-      "Thinking that all forms of light are equally effective in driving photosynthesis.",
-      "Forgetting that ATP and NADPH are temporary energy carriers used specifically for the Calvin Cycle, not for general plant energy storage.",
-      "Not recognizing that ADP and NADP+ are recycled from the Calvin Cycle to be used again in the light-dependent reactions."
-    ],
-    "sections": [
-      {
-        "title": "Prerequisites",
-        "bullets": [
-          "Basic understanding of plant cells and organelles, especially chloroplasts.",
-          "Concept of energy in biological systems (e.g., chemical energy, light energy).",
-          "General overview of photosynthesis as a process to convert light energy into chemical energy.",
-          "Understanding of ATP as an energy currency molecule.",
-          "Familiarity with the concept of electron carriers (e.g., NADP+).",
-          "Basic knowledge of pigments like chlorophyll and their role in light absorption.",
-          "The role of water in biological processes."
-        ]
-      },
-      {
-        "title": "Key Ideas",
-        "bullets": [
-          "Location: Occur exclusively in the thylakoid membranes within chloroplasts.",
-          "Inputs: Light energy, water (H2O), ADP, and NADP+.",
-          "Outputs: ATP, NADPH, and oxygen (O2).",
-          "Photosystems: Light energy is absorbed by chlorophyll in Photosystem II and Photosystem I.",
-          "Electron Transport Chain: Excited electrons move through a series of protein complexes, releasing energy.",
-          "Photolysis: Water molecules are split to replace lost electrons, releasing protons (H+), electrons (e-), and oxygen (O2).",
-          "Chemiosmosis: The energy from electron transport is used to pump protons into the thylakoid lumen, creating a proton gradient.",
-          "ATP Synthesis: Protons flow back out of the lumen through ATP synthase, driving the production of ATP from ADP and Pi.",
-          "NADPH Production: Electrons are transferred to NADP+ to form NADPH, an energy-carrying molecule."
-        ]
-      },
-      {
-        "title": "Pitfalls",
-        "bullets": [
-          "Confusing the inputs and outputs with the Light-Independent Reactions (Calvin Cycle).",
-          "Believing that glucose is produced directly in the light-dependent reactions.",
-          "Not understanding the critical role of water splitting (photolysis) in replacing electrons and producing oxygen.",
-          "Misinterpreting oxygen as the primary goal of these reactions, rather than a byproduct.",
-          "Failing to grasp how the proton gradient across the thylakoid membrane drives ATP synthesis (chemiosmosis).",
-          "Thinking that all forms of light are equally effective in driving photosynthesis.",
-          "Forgetting that ATP and NADPH are temporary energy carriers used specifically for the Calvin Cycle, not for general plant energy storage.",
-          "Not recognizing that ADP and NADP+ are recycled from the Calvin Cycle to be used again in the light-dependent reactions."
-        ]
-      }
-    ],
-    "generatedAt": "2026-01-18T02:57:07.575363+00:00"
+    "generatedAt": "2026-01-19T11:49:48.655425+00:00"
   }
 }

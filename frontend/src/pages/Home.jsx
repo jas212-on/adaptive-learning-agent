@@ -86,7 +86,7 @@ export default function Home() {
                 onClick={() => navigate('/login')}
                 className="rounded-2xl border border-white/10 px-10 py-5 text-lg font-light tracking-tight text-white/80 transition-colors hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30"
               >
-                Sign In
+                Login
               </button>
             </div>
           </div>

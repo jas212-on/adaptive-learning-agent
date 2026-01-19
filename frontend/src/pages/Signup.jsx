@@ -12,18 +12,24 @@ export default function Signup() {
   const { signup } = useAuth()
   const navigate = useNavigate()
 
-  const [name, setName] = useState('Demo User')
-  const [email, setEmail] = useState('demo@adaptive.ai')
-  const [password, setPassword] = useState('password')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [info, setInfo] = useState(null)
 
   async function onSubmit(e) {
     e.preventDefault()
     setError(null)
+    setInfo(null)
     setLoading(true)
     try {
-      await signup({ name, email, password })
+      const res = await signup({ name, email, password })
+      if (res?.needsEmailConfirmation) {
+        setInfo('Check your email to confirm your account, then log in.')
+        return
+      }
       navigate('/detection')
     } catch (err) {
       setError(err?.message || 'Signup failed')
@@ -125,6 +131,12 @@ export default function Signup() {
                 {error ? (
                   <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-light text-red-200">
                     {error}
+                  </div>
+                ) : null}
+
+                {info ? (
+                  <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-light text-emerald-100">
+                    {info}
                   </div>
                 ) : null}
 
