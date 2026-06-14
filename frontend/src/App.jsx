@@ -18,6 +18,9 @@ import Analytics from './pages/dashboard/Analytics'
 import Suggestions from './pages/dashboard/Suggestions'
 import Timetable from './pages/dashboard/Timetable'
 import DependencyGraph from './pages/dashboard/DependencyGraph'
+import ReviewQueue from './pages/dashboard/ReviewQueue'
+import LearningReport from './pages/dashboard/LearningReport'
+import Classrooms from './pages/dashboard/Classrooms'
 
 // Learning Mode view for focused learning experience
 import LearningMode from './pages/dashboard/LearningMode'
@@ -55,6 +58,9 @@ export default function App() {
         <Route path="suggestions" element={<Suggestions />} />
         <Route path="timetable" element={<Timetable />} />
         <Route path="dependency-graph" element={<DependencyGraph />} />
+        <Route path="review" element={<ReviewQueue />} />
+        <Route path="report" element={<LearningReport />} />
+        <Route path="classrooms" element={<Classrooms />} />
 
         <Route path="topics" element={<TopicsIndex />} />
         {/* TopicDetails now handles all module/step navigation via query params */}

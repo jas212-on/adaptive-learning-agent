@@ -2,10 +2,16 @@ from pathlib import Path
 import re
 import hashlib
 import json
+import logging
+import random
+import string
 import threading
-from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, Query
+import uuid
+from datetime import datetime, timezone, date as date_type, timedelta
+from math import exp
+from fastapi import FastAPI, HTTPException, Query, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import subprocess
 import sys
 from pydantic import BaseModel
@@ -14,8 +20,25 @@ import os
 from dotenv import load_dotenv
 from typing import Any
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 from urllib.parse import urlparse
 from graph.builder import build_concept_graph, graph_to_legacy_format
+from config import (
+    GOOGLE_API_KEY, SERPAPI_API_KEY, CORS_ORIGINS, RATE_LIMIT_AI, RATE_LIMIT_DATA,
+    REQUEST_ID_CTX, setup_logging, validate_config,
+)
+from auth import get_current_user_id, get_optional_user_id
+from db import get_admin_client, health_check as db_health_check
+from bkt import (
+    update_on_quiz_submit as bkt_update_on_quiz,
+    get_review_queue, load_bkt_state, get_daily_goal_progress,
+    get_difficulty_level, compute_streak as bkt_compute_streak,
+    apply_mastery_decay,
+)
+from llm.provider import get_provider as get_llm_provider, get_telemetry as get_llm_telemetry
 
 
 def _quiz_module():
@@ -49,8 +72,11 @@ class DetectTopicResponse(BaseModel):
     raw: str | None = None
 
 load_dotenv()
+setup_logging()
+log = logging.getLogger("ala")
+validate_config()
 
-api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+api_key = GOOGLE_API_KEY
 
 _gemini_ready = bool(api_key)
 if _gemini_ready:
@@ -58,6 +84,8 @@ if _gemini_ready:
     model = genai.GenerativeModel("gemini-2.5-flash")
 else:
     model = None
+
+limiter = Limiter(key_func=get_remote_address)
 
 def ask_gemini(prompt: str) -> str:
     if model is None:
@@ -72,8 +100,26 @@ def ask_gemini(prompt: str) -> str:
 app = FastAPI(
     title="Adaptive Learning Agent API",
     description="AI-powered adaptive learning system with real-time content detection and personalized learning paths",
-    version="1.0.0"
+    version="1.0.0",
 )
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"error": "rate_limit", "message": "Too many requests. Please slow down."},
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    log.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal", "message": "An unexpected error occurred."},
+    )
 
 # Include timetable router (works from both repo root and backend/ cwd)
 try:
@@ -303,97 +349,81 @@ def _build_explainer(topic_title: str, subtopic_title: str) -> dict[str, Any]:
 _bkt_state_lock = threading.Lock()
 
 
-def _bkt_state_path() -> Path:
-    return _backend_dir() / "bkt_state.json"
-
-
-def _load_bkt_state() -> dict[str, Any]:
-    path = _bkt_state_path()
-    if not path.exists():
-        return {}
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else {}
-    except Exception:
-        return {}
-
-
-def _save_bkt_state(state: dict[str, Any]) -> None:
-    path = _bkt_state_path()
-    try:
-        path.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
-    except Exception:
-        # Best-effort; analytics can still run with in-memory values.
-        pass
-
-
-def _update_mastery_remaining_part(prev_mastery: float, score_pct: int) -> float:
-    """Update mastery using the user's requested "remaining part" rule.
-
-    If score is s in [0,1] and current mastery is p, new mastery is:
-      p' = 1 - (1 - p) * (1 - s)
-    Example: p=0, s=0.8 => 0.8; then again s=0.8 => 0.96.
-    This is a monotonic, BKT-inspired accumulation model.
-    """
-
-    try:
-        p = float(prev_mastery)
-    except Exception:
-        p = 0.0
-    p = max(0.0, min(1.0, p))
-
-    try:
-        s = float(score_pct) / 100.0
-    except Exception:
-        s = 0.0
-    s = max(0.0, min(1.0, s))
-
-    return 1.0 - (1.0 - p) * (1.0 - s)
-
-
 def _bkt_update_on_quiz_submit(
-    *, topic_id: str, subtopic_id: str, score_pct: int, correct_count: int, total: int, submitted_at: str
+    *, user_id: str | None, topic_id: str, subtopic_id: str,
+    score_pct: int, correct_count: int, total: int, submitted_at: str,
 ) -> float:
-    with _bkt_state_lock:
-        state = _load_bkt_state()
-        topic_state = state.get(topic_id)
-        if not isinstance(topic_state, dict):
-            topic_state = {}
+    """Update mastery using full 4-parameter BKT with decay and spaced repetition."""
+    result = bkt_update_on_quiz(
+        topic_id=topic_id, subtopic_id=subtopic_id,
+        score_pct=score_pct, correct_count=correct_count,
+        total=total, submitted_at=submitted_at,
+    )
+    mastery = result["mastery"]
 
-        skills = topic_state.get("subtopics")
-        if not isinstance(skills, dict):
-            skills = {}
-
-        skill = skills.get(subtopic_id)
-        if not isinstance(skill, dict):
-            skill = {}
-
-        prev_mastery = skill.get("mastery")
-        mastery = _update_mastery_remaining_part(prev_mastery, score_pct)
-
-        attempt_count = skill.get("attempts")
+    if user_id:
         try:
-            attempt_count = int(attempt_count)
-        except Exception:
-            attempt_count = 0
-        attempt_count += 1
-
-        skill.update(
-            {
+            db = get_admin_client()
+            db.table("mastery").upsert({
+                "user_id": user_id,
+                "topic_id": topic_id,
+                "subtopic_id": subtopic_id,
                 "mastery": mastery,
-                "attempts": attempt_count,
-                "lastScorePct": int(score_pct),
-                "lastCorrectCount": int(correct_count),
-                "lastTotal": int(total),
-                "updatedAt": submitted_at,
-            }
-        )
-        skills[subtopic_id] = skill
-        topic_state["subtopics"] = skills
-        topic_state["updatedAt"] = submitted_at
-        state[topic_id] = topic_state
-        _save_bkt_state(state)
-        return mastery
+                "attempts": result["attempts"],
+                "last_score_pct": int(score_pct),
+                "last_correct_count": int(correct_count),
+                "last_total": int(total),
+                "updated_at": submitted_at,
+            }).execute()
+
+            db.table("quiz_attempts").insert({
+                "user_id": user_id,
+                "topic_id": topic_id,
+                "subtopic_id": subtopic_id,
+                "score_pct": int(score_pct),
+                "correct_count": int(correct_count),
+                "total": int(total),
+                "mastery_after": mastery,
+                "submitted_at": submitted_at,
+            }).execute()
+
+            # Update spaced repetition schedule
+            try:
+                from bkt import compute_stability, next_review_date, SR_INTERVALS
+                avg_score = float(score_pct) / 100.0
+                stability = compute_stability(result["attempts"], avg_score)
+                sr_idx = result.get("sr_interval_index", 0)
+                last_seen = datetime.fromisoformat(submitted_at.replace("Z", "+00:00"))
+                review_dt = next_review_date(last_seen, stability, sr_idx)
+
+                db.table("review_schedule").upsert({
+                    "user_id": user_id,
+                    "topic_id": topic_id,
+                    "subtopic_id": subtopic_id,
+                    "next_review_at": review_dt.isoformat(),
+                    "stability": stability,
+                    "interval_index": sr_idx,
+                    "last_reviewed_at": submitted_at,
+                }).execute()
+            except Exception as e:
+                log.warning("Review schedule update failed: %s", e)
+
+            # Track study session
+            try:
+                db.table("study_sessions").insert({
+                    "user_id": user_id,
+                    "topic_id": topic_id,
+                    "subtopic_id": subtopic_id,
+                    "activity": "quiz",
+                    "duration_seconds": 0,
+                    "started_at": submitted_at,
+                }).execute()
+            except Exception:
+                pass
+        except Exception as e:
+            log.warning("Supabase mastery sync failed: %s", e)
+
+    return mastery
 
 
 def _quiz_cache_path_candidates(topic_id: str, topic_title: str, subtopic_id: str) -> list[Path]:
@@ -888,6 +918,49 @@ def _build_topics_from_entries(entries: list[dict[str, Any]]) -> list[DetectedTo
             DetectorSnippet(source="screen", where=window_title, text=snippet_text, strength="medium")
         )
 
+    # Enrich topics with real confidence, level, and summary derived from data
+    try:
+        bkt_state = load_bkt_state()
+    except Exception:
+        bkt_state = {}
+
+    for topic_id, topic_obj in by_topic.items():
+        # Confidence: derived from number of captured snippets (more evidence = higher confidence)
+        snippet_count = len(topic_obj.snippets)
+        topic_obj.confidence = min(1.0, snippet_count * 0.20)
+
+        # Level: derived from BKT mastery if quizzes have been taken
+        topic_bkt = bkt_state.get(topic_id, {})
+        subs_bkt = topic_bkt.get("subtopics", {}) if isinstance(topic_bkt, dict) else {}
+        if subs_bkt:
+            masteries = [
+                float(v.get("mastery", 0.0))
+                for v in subs_bkt.values()
+                if isinstance(v, dict)
+            ]
+            avg_mastery = sum(masteries) / len(masteries) if masteries else 0.0
+            if avg_mastery >= 0.75:
+                topic_obj.level = "advanced"
+            elif avg_mastery >= 0.40:
+                topic_obj.level = "intermediate"
+            else:
+                topic_obj.level = "beginner"
+        # else keep default "intermediate"
+
+        # Summary: aggregate unique text from the first few snippets
+        if not topic_obj.summary and topic_obj.snippets:
+            seen_texts: set[str] = set()
+            parts: list[str] = []
+            for s in topic_obj.snippets[:5]:
+                key = s.text[:60].lower().strip()
+                if key and key not in seen_texts:
+                    seen_texts.add(key)
+                    clean = s.text.strip().rstrip("…").strip()
+                    if clean:
+                        parts.append(clean)
+            if parts:
+                topic_obj.summary = " • ".join(parts[:3])
+
     # Return in stable order (most recent last in file tends to be newest; reverse for UI)
     topics = list(by_topic.values())
     topics.sort(key=lambda t: t.title)
@@ -968,11 +1041,23 @@ def stop_ocr() -> bool:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def _request_id_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    token = REQUEST_ID_CTX.set(request_id)
+    try:
+        response = await call_next(request)
+    finally:
+        REQUEST_ID_CTX.reset(token)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 # EXISTING DETECTION ENDPOINTS
 
@@ -980,8 +1065,10 @@ app.add_middleware(
 def read_root():
     return {"message": "Adaptive Learning Agent API is running."}
 
+
 @app.post("/ask", response_model=AskResponse)
-def ask_ai(data: AskRequest):
+@limiter.limit(RATE_LIMIT_AI)
+def ask_ai(request: Request, data: AskRequest):
     if not data.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 
@@ -995,7 +1082,8 @@ def ask_ai(data: AskRequest):
 
 
 @app.post("/detect/topic", response_model=DetectTopicResponse)
-def detect_topic(data: DetectTopicRequest):
+@limiter.limit(RATE_LIMIT_AI)
+def detect_topic(request: Request, data: DetectTopicRequest):
     text = (data.text or "").strip()
     if not text:
         raise HTTPException(status_code=400, detail="text cannot be empty")
@@ -1119,7 +1207,7 @@ def ocr_log(lines: int = 200):
 @app.post("/ocr/start")
 def ocr_start():
     try:
-        print("Starting OCR process...")
+        log.info("Starting OCR process...")
         started = start_ocr()
         return {"started": started, "running": is_ocr_running()}
     except Exception as e:
@@ -1149,19 +1237,47 @@ def detector_stop():
     return ocr_stop()
 
 
+def _sync_topics_to_supabase(user_id: str | None, topics: list[DetectedTopic]) -> None:
+    """Best-effort sync of topic metadata to Supabase (no raw OCR text)."""
+    if not user_id or not topics:
+        return
+    try:
+        db = get_admin_client()
+        rows = [
+            {
+                "id": t.id,
+                "user_id": user_id,
+                "title": t.title,
+                "level": t.level,
+                "confidence": t.confidence or 0.0,
+                "tags": t.tags or [],
+                "subtopics": t.subtopics or [],
+                "summary": t.summary,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            for t in topics
+        ]
+        db.table("topics").upsert(rows, on_conflict="id,user_id").execute()
+    except Exception as e:
+        log.warning("Topic sync to Supabase failed: %s", e)
+
+
 @app.get("/detector/topics", response_model=list[DetectedTopic])
-def detector_topics():
+def detector_topics(user_id: str | None = Depends(get_optional_user_id)):
     entries = _read_output_entries()
-    return _build_topics_from_entries(entries)
+    topics = _build_topics_from_entries(entries)
+    _sync_topics_to_supabase(user_id, topics)
+    return topics
 
 
 @app.get("/detector/topics/{topic_id}", response_model=DetectedTopic)
-def detector_topic(topic_id: str):
+def detector_topic(topic_id: str, user_id: str | None = Depends(get_optional_user_id)):
     entries = _read_output_entries()
     topics = _build_topics_from_entries(entries)
     for t in topics:
         if t.id == topic_id:
             t.summary = get_topic_summary(t.id, t.title, entries)
+            _sync_topics_to_supabase(user_id, [t])
             return t
     raise HTTPException(status_code=404, detail="Topic not found")
 
@@ -1205,12 +1321,16 @@ def detector_topic_resources(
 
 
 @app.get("/detector/topics/{topic_id}/quiz")
+@limiter.limit(RATE_LIMIT_AI)
 def detector_topic_quiz(
+    request: Request,
     topic_id: str,
     subtopic_id: str | None = None,
     subtopic_title: str | None = None,
     n_questions: int = Query(5, ge=1, le=10),
     force: bool = False,
+    difficulty: str = Query("medium", regex="^(easy|medium|hard|expert|auto)$"),
+    user_id: str | None = Depends(get_optional_user_id),
 ):
     entries = _read_output_entries()
     topics = _build_topics_from_entries(entries)
@@ -1230,6 +1350,16 @@ def detector_topic_quiz(
     if not chosen_subtopic:
         raise HTTPException(status_code=400, detail="subtopic_id or subtopic_title is required")
 
+    # Auto-detect difficulty from mastery level
+    actual_difficulty = difficulty
+    if difficulty == "auto":
+        sid = _slugify(chosen_subtopic)
+        state = load_bkt_state()
+        skill = state.get(topic_id, {}).get("subtopics", {}).get(sid, {})
+        mastery = float(skill.get("mastery", 0.0))
+        attempts = int(skill.get("attempts", 0))
+        actual_difficulty = get_difficulty_level(mastery, attempts)
+
     try:
         quizz = _quiz_module()
         payload = quizz.generate_quiz(
@@ -1237,6 +1367,7 @@ def detector_topic_quiz(
             subtopic_title=chosen_subtopic,
             n_questions=n_questions,
             force=force,
+            difficulty=actual_difficulty,
         )
 
         # Ensure ids match the route/query ids we use on the frontend.
@@ -1247,10 +1378,17 @@ def detector_topic_quiz(
         qs = payload.get("questions")
         if isinstance(qs, list):
             payload["questions"] = [
-                {"question": q.get("question"), "options": q.get("options")}
+                {
+                    "question": q.get("question"),
+                    "options": q.get("options"),
+                    "difficulty": q.get("difficulty", "medium"),
+                    "skill": q.get("skill", "conceptual"),
+                }
                 for q in qs
                 if isinstance(q, dict)
             ]
+
+        payload["difficulty"] = actual_difficulty
 
         # Remove internal fields that may contain correct answers.
         payload.pop("sets", None)
@@ -1265,7 +1403,9 @@ def detector_topic_quiz(
 
 
 @app.get("/detector/topics/{topic_id}/explainer", response_model=ExplainerResponse)
+@limiter.limit(RATE_LIMIT_AI)
 def detector_topic_explainer(
+    request: Request,
     topic_id: str,
     subtopic_id: str | None = None,
     subtopic_title: str | None = None,
@@ -1343,7 +1483,10 @@ def detector_topic_explainer(
 
 
 @app.post("/detector/topics/{topic_id}/quiz/submit")
-def detector_topic_quiz_submit(topic_id: str, body: QuizSubmitRequest):
+def detector_topic_quiz_submit(
+    topic_id: str, body: QuizSubmitRequest,
+    user_id: str | None = Depends(get_optional_user_id),
+):
     subtopic_id = _slugify(body.subtopicId)
     if not subtopic_id:
         raise HTTPException(status_code=400, detail="subtopicId is required")
@@ -1432,6 +1575,7 @@ def detector_topic_quiz_submit(topic_id: str, body: QuizSubmitRequest):
             raise HTTPException(status_code=500, detail=f"Failed to write quiz file: {e}")
 
     mastery = _bkt_update_on_quiz_submit(
+        user_id=user_id,
         topic_id=topic_id,
         subtopic_id=subtopic_id,
         score_pct=score_pct,
@@ -1439,6 +1583,28 @@ def detector_topic_quiz_submit(topic_id: str, body: QuizSubmitRequest):
         total=total,
         submitted_at=submitted_at,
     )
+
+    # Build per-question explanations for wrong answers
+    per_question = []
+    for idx in range(total):
+        q = questions[idx] if idx < len(questions) else {}
+        if not isinstance(q, dict):
+            continue
+        entry: dict[str, Any] = {
+            "correct": graded_flags[idx] if idx < len(graded_flags) else False,
+            "correct_index": None,
+            "explanation": None,
+        }
+        opts = q.get("options", [])
+        ca = q.get("correctAnswer")
+        if isinstance(opts, list) and isinstance(ca, str):
+            for oi, opt in enumerate(opts):
+                if opt == ca:
+                    entry["correct_index"] = oi
+                    break
+        if not entry["correct"]:
+            entry["explanation"] = q.get("explanation") or None
+        per_question.append(entry)
 
     return {
         "ok": True,
@@ -1451,6 +1617,7 @@ def detector_topic_quiz_submit(topic_id: str, body: QuizSubmitRequest):
         "scorePct": score_pct,
         "masteryPct": int(round(mastery * 100)),
         "graded": graded_flags,
+        "questions": per_question,
     }
 
 
@@ -1500,32 +1667,94 @@ def detector_topic_graph(
     return graph_to_legacy_format(graph)
 
 
+def _compute_streak(user_id: str | None) -> dict[str, Any]:
+    """Compute current and longest streak from quiz_attempts or bkt_state.json."""
+    attempt_dates: list[str] = []
+
+    if user_id:
+        try:
+            db = get_admin_client()
+            rows = (
+                db.table("quiz_attempts")
+                .select("submitted_at")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            for r in rows.data or []:
+                ts = r.get("submitted_at")
+                if isinstance(ts, str):
+                    attempt_dates.append(ts)
+        except Exception as e:
+            log.warning("Supabase quiz_attempts fetch failed: %s", e)
+
+    if not attempt_dates:
+        bkt_state = load_bkt_state()
+        for tid, tdata in bkt_state.items():
+            if not isinstance(tdata, dict):
+                continue
+            subs = tdata.get("subtopics") if isinstance(tdata, dict) else {}
+            if isinstance(subs, dict):
+                for sid, skill in subs.items():
+                    if isinstance(skill, dict):
+                        ts = skill.get("updatedAt") or skill.get("last_seen")
+                        if isinstance(ts, str):
+                            attempt_dates.append(ts)
+
+    return bkt_compute_streak(attempt_dates)
+
+
+@app.get("/streaks")
+def get_streaks(user_id: str | None = Depends(get_optional_user_id)):
+    return _compute_streak(user_id)
+
+
 @app.get("/analytics")
-def get_analytics():
-    """Return lightweight analytics driven by quiz mastery.
-
-    Per-topic progress/score is computed from stored mastery values per subtopic.
-    Mastery is updated on each quiz submission using the user's requested
-    "remaining part" accumulation rule.
-    """
-
+def get_analytics(user_id: str | None = Depends(get_optional_user_id)):
+    """Return lightweight analytics driven by quiz mastery."""
     entries = _read_output_entries()
     topics = _build_topics_from_entries(entries)
 
-    with _bkt_state_lock:
-        bkt_state = _load_bkt_state()
+    # Try Supabase mastery first, fall back to local file
+    supabase_mastery: dict[str, dict[str, float]] = {}
+    bkt_state: dict[str, Any] = {}
+    if user_id:
+        try:
+            db = get_admin_client()
+            rows = db.table("mastery").select("topic_id,subtopic_id,mastery").eq("user_id", user_id).execute()
+            for r in rows.data or []:
+                supabase_mastery.setdefault(r["topic_id"], {})[r["subtopic_id"]] = r["mastery"]
+        except Exception as e:
+            log.warning("Supabase mastery fetch failed, using local: %s", e)
+
+    if not supabase_mastery:
+        bkt_state = load_bkt_state()
+        now_utc = datetime.now(timezone.utc)
+        for tid, tdata in bkt_state.items():
+            subs = tdata.get("subtopics") if isinstance(tdata, dict) else {}
+            if isinstance(subs, dict):
+                for sid, skill in subs.items():
+                    if isinstance(skill, dict):
+                        try:
+                            raw_m = float(skill.get("mastery") or 0.0)
+                            last_seen_str = skill.get("last_seen") or skill.get("updatedAt")
+                            days = 0.0
+                            if last_seen_str:
+                                try:
+                                    last_dt = datetime.fromisoformat(
+                                        str(last_seen_str).replace("Z", "+00:00")
+                                    )
+                                    days = max(0.0, (now_utc - last_dt).total_seconds() / 86400.0)
+                                except Exception:
+                                    pass
+                            supabase_mastery.setdefault(tid, {})[sid] = apply_mastery_decay(raw_m, days)
+                        except Exception:
+                            pass
 
     by_topic: list[dict[str, Any]] = []
     progress_vals: list[float] = []
 
     for t in topics:
-        topic_state = bkt_state.get(t.id)
-        if not isinstance(topic_state, dict):
-            topic_state = {}
-        sub_state = topic_state.get("subtopics")
-        if not isinstance(sub_state, dict):
-            sub_state = {}
-
+        sub_mastery = supabase_mastery.get(t.id, {})
         subtopics = t.subtopics or []
         if not subtopics:
             progress = 0.0
@@ -1533,14 +1762,8 @@ def get_analytics():
             mastery_list: list[float] = []
             for st in subtopics:
                 sid = _slugify(st)
-                skill = sub_state.get(sid)
-                mastery = 0.0
-                if isinstance(skill, dict):
-                    try:
-                        mastery = float(skill.get("mastery") or 0.0)
-                    except Exception:
-                        mastery = 0.0
-                mastery_list.append(max(0.0, min(1.0, mastery)))
+                m = sub_mastery.get(sid, 0.0)
+                mastery_list.append(max(0.0, min(1.0, m)))
             progress = sum(mastery_list) / len(mastery_list) if mastery_list else 0.0
 
         progress_vals.append(progress)
@@ -1549,9 +1772,7 @@ def get_analytics():
                 "id": t.id,
                 "title": t.title,
                 "progress": progress,
-                # For now, align score to progress (mastery %) so the UI stays simple.
                 "score": int(round(progress * 100)),
-                # Time tracking isn't wired yet; keep shape stable.
                 "minutes": 0,
             }
         )
@@ -1559,9 +1780,44 @@ def get_analytics():
     avg_score = int(round((sum(progress_vals) / len(progress_vals)) * 100)) if progress_vals else 0
     topics_learned = sum(1 for p in progress_vals if p >= 0.999)
 
+    streak_info = _compute_streak(user_id)
+
+    # Compute time spent from study_sessions (Supabase) or estimate from BKT attempt count
+    time_spent_minutes = 0
+    if user_id:
+        try:
+            db = get_admin_client()
+            rows = db.table("study_sessions").select("duration_seconds").eq("user_id", user_id).not_.is_("duration_seconds", "null").execute()
+            total_sec = sum(int(r.get("duration_seconds") or 0) for r in rows.data or [])
+            time_spent_minutes = total_sec // 60
+        except Exception:
+            pass
+    if time_spent_minutes == 0:
+        # Estimate: 5 minutes per quiz attempt recorded in BKT state
+        total_attempts = sum(
+            int(v.get("attempts") or 0)
+            for tdata in bkt_state.values() if isinstance(tdata, dict)
+            for v in (tdata.get("subtopics") or {}).values() if isinstance(v, dict)
+        )
+        time_spent_minutes = total_attempts * 5
+
+    # Enrich by_topic with per-topic time from study_sessions
+    if user_id:
+        try:
+            db = get_admin_client()
+            rows = db.table("study_sessions").select("topic_id,duration_seconds").eq("user_id", user_id).not_.is_("duration_seconds", "null").execute()
+            topic_time: dict[str, int] = {}
+            for r in rows.data or []:
+                tid = r.get("topic_id") or ""
+                topic_time[tid] = topic_time.get(tid, 0) + int(r.get("duration_seconds") or 0)
+            for item in by_topic:
+                item["minutes"] = topic_time.get(item["id"], 0) // 60
+        except Exception:
+            pass
+
     return {
-        "streakDays": 0,
-        "timeSpentMinutes": 0,
+        "streakDays": streak_info["currentStreak"],
+        "timeSpentMinutes": time_spent_minutes,
         "topicsLearned": topics_learned,
         "avgScore": avg_score,
         "byTopic": by_topic,
@@ -1663,7 +1919,8 @@ class SuggestionsResponse(BaseModel):
 
 
 @app.get("/suggestions", response_model=SuggestionsResponse)
-def get_suggestions(force: bool = False):
+@limiter.limit(RATE_LIMIT_AI)
+def get_suggestions(request: Request, force: bool = False):
     """
     Generate AI-powered learning suggestions based on detected topics.
     
@@ -1761,7 +2018,8 @@ Provide a helpful, focused answer:"""
 
 
 @app.post("/assistant/chat", response_model=AssistantChatResponse)
-def assistant_chat(body: AssistantChatRequest):
+@limiter.limit(RATE_LIMIT_AI)
+def assistant_chat(request: Request, body: AssistantChatRequest):
     """
     Simple topic-focused chatbot using Gemini.
     Answers questions and clarifies doubts about a specific topic.
@@ -1792,3 +2050,728 @@ def assistant_chat(body: AssistantChatRequest):
         return AssistantChatResponse(answer=answer)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
+
+
+# ============================= Roadmap Progress Endpoints =============================
+
+class RoadmapProgressUpdate(BaseModel):
+    topicId: str
+    subtopicId: str
+    explainerDone: bool | None = None
+    resourcesDone: bool | None = None
+    quizDone: bool | None = None
+
+
+@app.get("/progress/{topic_id}")
+def get_roadmap_progress(topic_id: str, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        rows = (
+            db.table("roadmap_progress")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("topic_id", topic_id)
+            .execute()
+        )
+        progress = {}
+        for r in rows.data or []:
+            progress[r["subtopic_id"]] = {
+                "explainer": r.get("explainer_done", False),
+                "resources": r.get("resources_done", False),
+                "quiz": r.get("quiz_done", False),
+            }
+        return progress
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.warning("Progress fetch failed: %s", e)
+        return {}
+
+
+@app.put("/progress")
+def update_roadmap_progress(body: RoadmapProgressUpdate, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        row: dict[str, Any] = {
+            "user_id": user_id,
+            "topic_id": body.topicId,
+            "subtopic_id": body.subtopicId,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if body.explainerDone is not None:
+            row["explainer_done"] = body.explainerDone
+        if body.resourcesDone is not None:
+            row["resources_done"] = body.resourcesDone
+        if body.quizDone is not None:
+            row["quiz_done"] = body.quizDone
+
+        db.table("roadmap_progress").upsert(row, on_conflict="user_id,topic_id,subtopic_id").execute()
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= User Settings Endpoints =============================
+
+class UserSettingsUpdate(BaseModel):
+    lastViewed: dict | None = None
+    theme: str | None = None
+
+
+@app.get("/settings")
+def get_user_settings(user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        result = db.table("user_settings").select("*").eq("user_id", user_id).single().execute()
+        return result.data or {}
+    except Exception:
+        return {}
+
+
+@app.put("/settings")
+def update_user_settings(body: UserSettingsUpdate, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        row: dict[str, Any] = {
+            "user_id": user_id,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if body.lastViewed is not None:
+            row["last_viewed"] = body.lastViewed
+        if body.theme is not None:
+            row["theme"] = body.theme
+
+        db.table("user_settings").upsert(row).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Spaced Repetition Endpoints =============================
+
+@app.get("/review-queue")
+def get_review_queue_endpoint(user_id: str | None = Depends(get_optional_user_id)):
+    """Get topics due for review based on spaced repetition scheduling."""
+    # Try Supabase first
+    if user_id:
+        try:
+            db = get_admin_client()
+            now = datetime.now(timezone.utc).isoformat()
+            rows = (
+                db.table("review_schedule")
+                .select("*")
+                .eq("user_id", user_id)
+                .lte("next_review_at", now)
+                .order("next_review_at")
+                .limit(20)
+                .execute()
+            )
+            if rows.data:
+                return {
+                    "items": [
+                        {
+                            "topicId": r["topic_id"],
+                            "subtopicId": r["subtopic_id"],
+                            "nextReviewAt": r["next_review_at"],
+                            "stability": r.get("stability", 0),
+                            "intervalIndex": r.get("interval_index", 0),
+                        }
+                        for r in rows.data
+                    ],
+                    "total": len(rows.data),
+                }
+        except Exception as e:
+            log.warning("Supabase review queue fetch failed: %s", e)
+
+    # Fallback to local BKT state
+    state = load_bkt_state()
+    items = get_review_queue(state)
+    return {"items": items[:20], "total": len(items)}
+
+
+@app.get("/daily-progress")
+def get_daily_progress(user_id: str | None = Depends(get_optional_user_id)):
+    """Get daily study goal progress and streak info."""
+    state = load_bkt_state()
+    goal_progress = get_daily_goal_progress(state)
+    streak_info = _compute_streak(user_id)
+
+    # Get study goal settings
+    daily_goal = 3
+    if user_id:
+        try:
+            db = get_admin_client()
+            row = db.table("study_goals").select("*").eq("user_id", user_id).single().execute()
+            if row.data:
+                daily_goal = row.data.get("daily_quiz_goal", 3)
+        except Exception:
+            pass
+
+    goal_progress["goalQuizzes"] = daily_goal
+    goal_progress["progressPct"] = min(100, int(round(goal_progress["quizzesToday"] / max(1, daily_goal) * 100)))
+    goal_progress["completed"] = goal_progress["quizzesToday"] >= daily_goal
+
+    return {**goal_progress, **streak_info}
+
+
+class StudyGoalUpdate(BaseModel):
+    dailyQuizGoal: int | None = None
+    dailyMinutesGoal: int | None = None
+
+
+@app.put("/daily-progress/goal")
+def update_daily_goal(body: StudyGoalUpdate, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        row: dict[str, Any] = {"user_id": user_id}
+        if body.dailyQuizGoal is not None:
+            row["daily_quiz_goal"] = max(1, min(20, body.dailyQuizGoal))
+        if body.dailyMinutesGoal is not None:
+            row["daily_minutes_goal"] = max(5, min(480, body.dailyMinutesGoal))
+        db.table("study_goals").upsert(row).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Resource Voting =============================
+
+class ResourceVote(BaseModel):
+    topicId: str
+    subtopicId: str | None = None
+    resourceUrl: str
+    vote: int  # 1 or -1
+
+
+@app.post("/resources/vote")
+def vote_resource(body: ResourceVote, user_id: str = Depends(get_current_user_id)):
+    if body.vote not in (1, -1):
+        raise HTTPException(status_code=400, detail="vote must be 1 or -1")
+    try:
+        db = get_admin_client()
+        db.table("resource_votes").upsert({
+            "user_id": user_id,
+            "topic_id": body.topicId,
+            "subtopic_id": body.subtopicId,
+            "resource_url": body.resourceUrl,
+            "vote": body.vote,
+        }).execute()
+
+        # Update aggregate score in cache
+        try:
+            agg = db.table("resource_votes").select("vote").eq("resource_url", body.resourceUrl).execute()
+            total_score = sum(r["vote"] for r in (agg.data or []))
+            db.table("resource_cache").upsert({
+                "topic_id": body.topicId,
+                "subtopic_id": body.subtopicId or "",
+                "resource_url": body.resourceUrl,
+                "vote_score": total_score,
+            }).execute()
+        except Exception:
+            pass
+
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/resources/votes")
+def get_resource_votes(
+    topic_id: str,
+    user_id: str | None = Depends(get_optional_user_id),
+):
+    """Get vote scores for resources in a topic."""
+    try:
+        db = get_admin_client()
+        rows = db.table("resource_cache").select("resource_url,vote_score").eq("topic_id", topic_id).execute()
+        votes: dict[str, int] = {}
+        for r in rows.data or []:
+            votes[r["resource_url"]] = r.get("vote_score", 0)
+
+        user_votes: dict[str, int] = {}
+        if user_id:
+            uv = db.table("resource_votes").select("resource_url,vote").eq("user_id", user_id).eq("topic_id", topic_id).execute()
+            for r in uv.data or []:
+                user_votes[r["resource_url"]] = r["vote"]
+
+        return {"votes": votes, "userVotes": user_votes}
+    except Exception:
+        return {"votes": {}, "userVotes": {}}
+
+
+# ============================= Generated Content Storage =============================
+
+@app.post("/content/store")
+def store_generated_content(
+    body: dict,
+    user_id: str = Depends(get_current_user_id),
+):
+    """Store generated content (explainer/quiz/summary/graph) in Supabase for multi-device."""
+    topic_id = body.get("topicId")
+    subtopic_id = body.get("subtopicId")
+    content_type = body.get("contentType")
+    content = body.get("content")
+
+    if not topic_id or not content_type or content is None:
+        raise HTTPException(status_code=400, detail="topicId, contentType, content are required")
+
+    try:
+        db = get_admin_client()
+        content_hash = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+        db.table("generated_content").upsert({
+            "user_id": user_id,
+            "topic_id": topic_id,
+            "subtopic_id": subtopic_id or "",
+            "content_type": content_type,
+            "content": content,
+            "content_hash": content_hash,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }).execute()
+        return {"ok": True, "hash": content_hash}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/content/{topic_id}")
+def get_generated_content(
+    topic_id: str,
+    content_type: str | None = None,
+    subtopic_id: str | None = None,
+    user_id: str = Depends(get_current_user_id),
+):
+    try:
+        db = get_admin_client()
+        q = db.table("generated_content").select("*").eq("user_id", user_id).eq("topic_id", topic_id)
+        if content_type:
+            q = q.eq("content_type", content_type)
+        if subtopic_id:
+            q = q.eq("subtopic_id", subtopic_id)
+        rows = q.execute()
+        items = []
+        for r in rows.data or []:
+            items.append({
+                "topicId": r["topic_id"],
+                "subtopicId": r.get("subtopic_id"),
+                "contentType": r["content_type"],
+                "content": r["content"],
+                "generatedAt": r.get("generated_at"),
+            })
+        return {"items": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Classroom / Collaborative =============================
+
+class CreateClassroom(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class JoinClassroom(BaseModel):
+    joinCode: str
+
+
+class ShareRoadmap(BaseModel):
+    topicId: str
+    title: str
+    subtopics: list[str] = []
+    description: str | None = None
+    classroomId: str | None = None
+    isPublic: bool = False
+
+
+def _generate_join_code() -> str:
+    return "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+
+@app.post("/classrooms")
+def create_classroom(body: CreateClassroom, user_id: str = Depends(get_current_user_id)):
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="name is required")
+    try:
+        db = get_admin_client()
+        join_code = _generate_join_code()
+        row = {
+            "name": body.name.strip(),
+            "description": (body.description or "").strip(),
+            "instructor_id": user_id,
+            "join_code": join_code,
+        }
+        result = db.table("classrooms").insert(row).execute()
+        classroom = result.data[0] if result.data else row
+
+        db.table("classroom_members").insert({
+            "classroom_id": classroom["id"],
+            "user_id": user_id,
+            "role": "instructor",
+        }).execute()
+
+        return {"ok": True, "classroom": classroom, "joinCode": join_code}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/classrooms/join")
+def join_classroom(body: JoinClassroom, user_id: str = Depends(get_current_user_id)):
+    if not body.joinCode.strip():
+        raise HTTPException(status_code=400, detail="joinCode is required")
+    try:
+        db = get_admin_client()
+        result = db.table("classrooms").select("*").eq("join_code", body.joinCode.strip().upper()).single().execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Classroom not found")
+        classroom = result.data
+
+        db.table("classroom_members").upsert({
+            "classroom_id": classroom["id"],
+            "user_id": user_id,
+            "role": "student",
+        }).execute()
+
+        return {"ok": True, "classroom": classroom}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/classrooms")
+def list_classrooms(user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        memberships = db.table("classroom_members").select("classroom_id,role").eq("user_id", user_id).execute()
+        if not memberships.data:
+            return {"classrooms": []}
+
+        classroom_ids = [m["classroom_id"] for m in memberships.data]
+        roles = {m["classroom_id"]: m["role"] for m in memberships.data}
+
+        classrooms = db.table("classrooms").select("*").in_("id", classroom_ids).execute()
+        items = []
+        for c in classrooms.data or []:
+            c["role"] = roles.get(c["id"], "student")
+            members = db.table("classroom_members").select("user_id,role").eq("classroom_id", c["id"]).execute()
+            c["memberCount"] = len(members.data) if members.data else 0
+            items.append(c)
+
+        return {"classrooms": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/classrooms/{classroom_id}")
+def get_classroom(classroom_id: str, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        membership = (
+            db.table("classroom_members")
+            .select("role")
+            .eq("classroom_id", classroom_id)
+            .eq("user_id", user_id)
+            .single()
+            .execute()
+        )
+        if not membership.data:
+            raise HTTPException(status_code=403, detail="Not a member of this classroom")
+
+        classroom = db.table("classrooms").select("*").eq("id", classroom_id).single().execute()
+        members = db.table("classroom_members").select("user_id,role,joined_at").eq("classroom_id", classroom_id).execute()
+        roadmaps = db.table("shared_roadmaps").select("*").eq("classroom_id", classroom_id).execute()
+
+        return {
+            "classroom": classroom.data,
+            "role": membership.data["role"],
+            "members": members.data or [],
+            "roadmaps": roadmaps.data or [],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/shared-roadmaps")
+def share_roadmap(body: ShareRoadmap, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        row = {
+            "owner_id": user_id,
+            "topic_id": body.topicId,
+            "title": body.title,
+            "subtopics": body.subtopics,
+            "description": body.description,
+            "is_public": body.isPublic,
+        }
+        if body.classroomId:
+            row["classroom_id"] = body.classroomId
+        result = db.table("shared_roadmaps").insert(row).execute()
+        return {"ok": True, "roadmap": result.data[0] if result.data else row}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/shared-roadmaps")
+def list_shared_roadmaps(
+    classroom_id: str | None = None,
+    user_id: str = Depends(get_current_user_id),
+):
+    try:
+        db = get_admin_client()
+        if classroom_id:
+            rows = db.table("shared_roadmaps").select("*").eq("classroom_id", classroom_id).execute()
+        else:
+            rows = db.table("shared_roadmaps").select("*").eq("owner_id", user_id).execute()
+        return {"roadmaps": rows.data or []}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/leaderboard")
+def get_leaderboard(
+    classroom_id: str | None = None,
+    user_id: str = Depends(get_current_user_id),
+):
+    """Get anonymized leaderboard for a classroom or global."""
+    try:
+        db = get_admin_client()
+        today = datetime.now(timezone.utc).date()
+        week_start = today - timedelta(days=today.weekday())
+
+        q = db.table("leaderboard_entries").select("*").eq("week_start", week_start.isoformat())
+        if classroom_id:
+            q = q.eq("classroom_id", classroom_id)
+        rows = q.order("avg_score", desc=True).limit(50).execute()
+
+        entries = []
+        for i, r in enumerate(rows.data or []):
+            entries.append({
+                "rank": i + 1,
+                "isYou": r["user_id"] == user_id,
+                "quizzesCompleted": r.get("quizzes_completed", 0),
+                "avgScore": round(r.get("avg_score", 0), 1),
+                "topicsMastered": r.get("topics_mastered", 0),
+                "streakDays": r.get("streak_days", 0),
+                "studyMinutes": r.get("total_study_minutes", 0),
+            })
+        return {"weekStart": week_start.isoformat(), "entries": entries}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Study Sessions (Time Tracking) =============================
+
+class StudySessionStart(BaseModel):
+    topicId: str
+    subtopicId: str | None = None
+    activity: str = "quiz"
+
+
+class StudySessionEnd(BaseModel):
+    sessionId: str
+    durationSeconds: int
+
+
+@app.post("/study-sessions/start")
+def start_study_session(body: StudySessionStart, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        session_id = str(uuid.uuid4())
+        db.table("study_sessions").insert({
+            "id": session_id,
+            "user_id": user_id,
+            "topic_id": body.topicId,
+            "subtopic_id": body.subtopicId,
+            "activity": body.activity,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }).execute()
+        return {"sessionId": session_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/study-sessions/end")
+def end_study_session(body: StudySessionEnd, user_id: str = Depends(get_current_user_id)):
+    try:
+        db = get_admin_client()
+        now = datetime.now(timezone.utc).isoformat()
+        db.table("study_sessions").update({
+            "duration_seconds": max(0, body.durationSeconds),
+            "ended_at": now,
+        }).eq("id", body.sessionId).eq("user_id", user_id).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/study-sessions/stats")
+def get_study_stats(
+    days: int = Query(30, ge=1, le=365),
+    user_id: str = Depends(get_current_user_id),
+):
+    try:
+        db = get_admin_client()
+        since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        rows = db.table("study_sessions").select("*").eq("user_id", user_id).gte("started_at", since).execute()
+
+        total_seconds = 0
+        by_topic: dict[str, int] = {}
+        by_activity: dict[str, int] = {}
+        by_date: dict[str, int] = {}
+
+        for r in rows.data or []:
+            dur = r.get("duration_seconds", 0)
+            total_seconds += dur
+            tid = r.get("topic_id", "unknown")
+            by_topic[tid] = by_topic.get(tid, 0) + dur
+            act = r.get("activity", "other")
+            by_activity[act] = by_activity.get(act, 0) + dur
+            dt = r.get("started_at", "")[:10]
+            if dt:
+                by_date[dt] = by_date.get(dt, 0) + dur
+
+        return {
+            "totalMinutes": round(total_seconds / 60, 1),
+            "byTopic": {k: round(v / 60, 1) for k, v in by_topic.items()},
+            "byActivity": {k: round(v / 60, 1) for k, v in by_activity.items()},
+            "byDate": {k: round(v / 60, 1) for k, v in by_date.items()},
+            "days": days,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Learning Report (PDF Export) =============================
+
+@app.get("/report")
+def generate_learning_report(user_id: str = Depends(get_current_user_id)):
+    """Generate a learning report with mastery data, quiz history, and study time."""
+    try:
+        db = get_admin_client()
+
+        # Mastery data
+        mastery_rows = db.table("mastery").select("*").eq("user_id", user_id).execute()
+        mastery_data = []
+        for r in mastery_rows.data or []:
+            mastery_data.append({
+                "topicId": r["topic_id"],
+                "subtopicId": r["subtopic_id"],
+                "mastery": round(r.get("mastery", 0), 4),
+                "attempts": r.get("attempts", 0),
+                "lastScorePct": r.get("last_score_pct"),
+            })
+
+        # Quiz history
+        quiz_rows = (
+            db.table("quiz_attempts")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("submitted_at", desc=True)
+            .limit(100)
+            .execute()
+        )
+        quiz_history = []
+        for r in quiz_rows.data or []:
+            quiz_history.append({
+                "topicId": r["topic_id"],
+                "subtopicId": r["subtopic_id"],
+                "scorePct": r["score_pct"],
+                "correctCount": r["correct_count"],
+                "total": r["total"],
+                "masteryAfter": r.get("mastery_after"),
+                "submittedAt": r["submitted_at"],
+            })
+
+        # Study sessions
+        sessions = db.table("study_sessions").select("*").eq("user_id", user_id).execute()
+        total_study_seconds = sum(r.get("duration_seconds", 0) for r in (sessions.data or []))
+
+        # Streak
+        streak = _compute_streak(user_id)
+
+        return {
+            "generatedAt": datetime.now(timezone.utc).isoformat(),
+            "userId": user_id,
+            "mastery": mastery_data,
+            "quizHistory": quiz_history,
+            "totalStudyMinutes": round(total_study_seconds / 60, 1),
+            "streak": streak,
+            "topicsCount": len(set(m["topicId"] for m in mastery_data)),
+            "quizzesCompleted": len(quiz_history),
+            "avgScore": round(sum(q["scorePct"] for q in quiz_history) / max(1, len(quiz_history)), 1),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================= Quiz Difficulty =============================
+
+@app.get("/quiz/difficulty/{topic_id}/{subtopic_id}")
+def get_quiz_difficulty(topic_id: str, subtopic_id: str, user_id: str | None = Depends(get_optional_user_id)):
+    """Get recommended quiz difficulty based on mastery level."""
+    state = load_bkt_state()
+    topic_data = state.get(topic_id, {})
+    subs = topic_data.get("subtopics", {})
+    skill = subs.get(subtopic_id, {})
+    mastery = float(skill.get("mastery", 0.0))
+    attempts = int(skill.get("attempts", 0))
+    difficulty = get_difficulty_level(mastery, attempts)
+
+    return {
+        "topicId": topic_id,
+        "subtopicId": subtopic_id,
+        "mastery": round(mastery, 4),
+        "attempts": attempts,
+        "recommendedDifficulty": difficulty,
+    }
+
+
+# ============================= Extended Health Check =============================
+
+@app.get("/health")
+def health():
+    db_status = db_health_check()
+    gemini_status = "ok" if _gemini_ready else "not configured"
+
+    llm_telemetry = get_llm_telemetry()
+
+    # SerpAPI latency check
+    serp_status = "not configured"
+    if SERPAPI_API_KEY:
+        serp_status = "configured"
+
+    ok = db_status.get("supabase") == "ok"
+    return {
+        "status": "healthy" if ok else "degraded",
+        "gemini": gemini_status,
+        "serpapi": serp_status,
+        "llm": llm_telemetry,
+        **db_status,
+    }
+
+
+# ============================= Observability =============================
+
+@app.get("/usage-stats")
+def get_usage_stats(user_id: str = Depends(get_current_user_id)):
+    """Usage analytics dashboard data (distinct from learning analytics)."""
+    llm_telemetry = get_llm_telemetry()
+    return {
+        "llm": llm_telemetry,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ============================= Request ID Middleware =============================
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4())[:8])
+    REQUEST_ID_CTX.set(request_id)
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response

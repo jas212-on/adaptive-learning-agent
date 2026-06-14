@@ -1,0 +1,46 @@
+# =============================================================================
+# Adaptive Learning Agent — .gitignore
+# =============================================================================
+
+# --- Secrets / environment ---
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# --- Backend runtime data (machine-local; not source) ---
+backend/output.json
+backend/bkt_state.json
+backend/summary_cache.json
+backend/explainer_cache.json
+backend/graph_cache.json
+backend/quiz_cache/
+backend/captures/
+backend/ocr.log
+backend/stop.flag
+captures/
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp

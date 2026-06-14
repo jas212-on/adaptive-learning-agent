@@ -1,234 +1,139 @@
-// Mock API layer. Replace these with real endpoints later.
+import { supabase } from '../lib/supabaseClient'
+import { configureSyncSender, enqueueSync } from '../lib/syncQueue'
 
 const API_BASE = import.meta?.env?.VITE_API_BASE_URL || '/api'
 
-async function apiFetch(path, { method = 'GET', body, headers } = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(headers || {}),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+async function getAuthHeaders() {
+  try {
+    const { data } = await supabase.auth.getSession()
+    const token = data?.session?.access_token
+    if (token) return { Authorization: `Bearer ${token}` }
+  } catch {
+    // unauthenticated
+  }
+  return {}
+}
 
-  if (!res.ok) {
-    let detail = ''
+const DEFAULT_TIMEOUT_MS = 20000
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Core fetch wrapper with:
+ *  - Bearer auth from the Supabase session
+ *  - per-request timeout via AbortController
+ *  - one retry with backoff on network errors / 5xx responses
+ *  - a typed error carrying `.status` so callers can branch on 401 etc.
+ */
+async function apiFetch(
+  path,
+  { method = 'GET', body, headers, timeoutMs = DEFAULT_TIMEOUT_MS, retries = 1 } = {},
+) {
+  const authHeaders = await getAuthHeaders()
+  let lastError
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
     try {
-      const data = await res.json()
-      detail = data?.detail ? String(data.detail) : ''
-    } catch {
-      // ignore
+      const res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+          ...(headers || {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller.signal,
+      })
+      clearTimeout(timer)
+
+      // Retry transient server errors once.
+      if (res.status >= 500 && attempt < retries) {
+        lastError = new Error(`Server error: ${res.status}`)
+        await sleep(300 * (attempt + 1))
+        continue
+      }
+
+      if (!res.ok) {
+        let detail = ''
+        try {
+          const data = await res.json()
+          detail = data?.detail || data?.message || ''
+        } catch {
+          // ignore
+        }
+        const err = new Error(detail || `API request failed: ${res.status} ${res.statusText}`)
+        err.status = res.status
+        throw err
+      }
+
+      // 204 / empty body safety
+      const text = await res.text()
+      return text ? JSON.parse(text) : {}
+    } catch (e) {
+      clearTimeout(timer)
+      // Don't retry real HTTP errors (they have a status); only network/abort.
+      if (e?.status || attempt >= retries) {
+        lastError = e
+        break
+      }
+      lastError = e
+      await sleep(300 * (attempt + 1))
     }
-    throw new Error(detail || `API request failed: ${res.status} ${res.statusText}`)
   }
 
-  // FastAPI returns JSON for our endpoints
-  return res.json()
+  throw lastError || new Error('API request failed')
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function uid(prefix = 'id') {
-  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`
-}
-
-const MOCK_TOPICS = [
-  {
-    id: 'react-hooks',
-    title: 'React Hooks: useEffect & dependencies',
-    level: 'intermediate',
-    confidence: 0.86,
-    tags: ['react', 'hooks', 'frontend'],
-    detectedAt: new Date().toISOString(),
-    snippets: [
-      {
-        source: 'screen',
-        where: 'VS Code editor',
-        text: 'useEffect(() => { ... }, [userId]) // dependency array',
-        strength: 'high',
-      },
-      {
-        source: 'screen',
-        where: 'Browser tab',
-        text: 'Avoid stale closures; memoize callbacks',
-        strength: 'medium',
-      },
-    ],
-  },
-  {
-    id: 'sql-joins',
-    title: 'SQL Joins and Cardinality',
-    level: 'beginner',
-    confidence: 0.74,
-    tags: ['sql', 'database'],
-    detectedAt: new Date().toISOString(),
-    snippets: [
-      {
-        source: 'screen',
-        where: 'PDF slide',
-        text: 'INNER JOIN vs LEFT JOIN; result set differences',
-        strength: 'high',
-      },
-    ],
-  },
-  {
-    id: 'os-scheduling',
-    title: 'CPU Scheduling: Round Robin',
-    level: 'advanced',
-    confidence: 0.63,
-    tags: ['os', 'systems'],
-    detectedAt: new Date().toISOString(),
-    snippets: [
-      {
-        source: 'screen',
-        where: 'Lecture notes',
-        text: 'Time quantum trade-offs; context switch overhead',
-        strength: 'medium',
-      },
-    ],
-  },
-]
-
-export async function login({ email }) {
-  await sleep(700)
-  return {
-    token: uid('token'),
-    user: {
-      id: uid('user'),
-      name: email?.split('@')?.[0] || 'Learner',
-      email,
-    },
-  }
-}
-
-export async function signup({ name, email }) {
-  await sleep(800)
-  return {
-    token: uid('token'),
-    user: {
-      id: uid('user'),
-      name: name || 'Learner',
-      email,
-    },
-  }
-}
+// ==================== Detection ====================
 
 export async function startDetection() {
-  // Real backend: POST /detector/start (proxied as /api/detector/start)
-  try {
-    await apiFetch('/detector/start', { method: 'POST' })
-    const topics = await apiFetch('/detector/topics')
-    return { topics }
-  } catch (e) {
-    // Fallback to mock if backend isn't running yet
-    await sleep(600)
-    return { topics: MOCK_TOPICS }
-  }
+  await apiFetch('/detector/start', { method: 'POST' })
+  const topics = await apiFetch('/detector/topics')
+  return { topics }
 }
 
 export async function stopDetection() {
-  try {
-    await apiFetch('/detector/stop', { method: 'POST' })
-    return { ok: true }
-  } catch (e) {
-    await sleep(250)
-    return { ok: true }
-  }
+  await apiFetch('/detector/stop', { method: 'POST' })
+  return { ok: true }
 }
 
 export async function getDetectorStatus() {
   try {
     return await apiFetch('/detector/status')
-  } catch (e) {
+  } catch {
     return { running: false, exit_code: null }
   }
 }
 
 export async function listDetectedTopics() {
-  try {
-    return await apiFetch('/detector/topics')
-  } catch (e) {
-    await sleep(250)
-    return MOCK_TOPICS
-  }
+  return apiFetch('/detector/topics')
 }
 
 export async function getTopic(topicId) {
-  try {
-    const t = await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}`)
-    return {
-      ...t,
-      // Keep UI stable even if backend doesn't provide these yet
-      detectedConcepts: t.detectedConcepts || [],
-      tags: t.tags || [],
-      subtopics: t.subtopics || [],
-      level: t.level || 'intermediate',
-    }
-  } catch (e) {
-    await sleep(300)
-    const topic = MOCK_TOPICS.find((t) => t.id === topicId)
-    if (!topic) throw new Error('Topic not found')
-    return {
-      ...topic,
-      detectedConcepts: [],
-      subtopics: [],
-    }
+  const t = await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}`)
+  return {
+    ...t,
+    detectedConcepts: t.detectedConcepts || [],
+    tags: t.tags || [],
+    subtopics: t.subtopics || [],
+    level: t.level || 'intermediate',
   }
 }
+
+// ==================== Learning Content ====================
 
 export async function explainTopic(topicId, opts = {}) {
   const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
   const force = !!opts?.force
 
+  if (!subtopicId) throw new Error('subtopicId is required')
+
   const qs = new URLSearchParams()
-  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  qs.set('subtopic_id', subtopicId)
   if (force) qs.set('force', 'true')
 
-  try {
-    if (!subtopicId) throw new Error('subtopicId is required')
-    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/explainer?${qs.toString()}`)
-  } catch (e) {
-    await sleep(700)
-    return {
-      topicId,
-      subtopicId: subtopicId || 'subtopic',
-      overview:
-        'A structured explainer that goes beyond what was detected on-screen. It covers prerequisites, mental models, and common pitfalls.',
-      prerequisites: ['Core concepts', 'Common terminology', 'Typical use-cases'],
-      keyIdeas: ['What it is', 'Why it matters', 'How to practice effectively'],
-      pitfalls: ['Misconceptions', 'Edge cases', 'How to debug mistakes'],
-      sections: [
-        {
-          title: 'Prerequisites',
-          bullets: ['Core concepts', 'Common terminology', 'Typical use-cases'],
-        },
-        {
-          title: 'Key Ideas',
-          bullets: ['What it is', 'Why it matters', 'How to practice effectively'],
-        },
-        {
-          title: 'Pitfalls',
-          bullets: ['Misconceptions', 'Edge cases', 'How to debug mistakes'],
-        },
-      ],
-    }
-  }
-}
-
-export async function generateRoadmap(topicId, level = 'intermediate') {
-  await sleep(900)
-  return {
-    topicId,
-    level,
-    steps: [
-      { title: 'Foundation', items: ['Core definitions', 'Simple examples', 'Glossary'] },
-      { title: 'Practice', items: ['Guided exercises', 'Mini-project', 'Flashcards'] },
-      { title: 'Mastery', items: ['Advanced patterns', 'Real-world scenarios', 'Mock interview questions'] },
-    ],
-  }
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/explainer?${qs.toString()}`)
 }
 
 export async function suggestResources(topicId, opts = {}) {
@@ -239,35 +144,23 @@ export async function suggestResources(topicId, opts = {}) {
   if (subtopicId) qs.set('subtopic_id', subtopicId)
   if (limit) qs.set('limit', String(limit))
 
-  try {
-    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/resources?${qs.toString()}`)
-  } catch (e) {
-    // Bubble error so the UI doesn't show irrelevant fallback resources.
-    throw e
-  }
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/resources?${qs.toString()}`)
 }
 
-/**
- * Generate a quiz for a specific subtopic.
- * @param {string} topicId - The topic ID
- * @param {Object} opts - Options
- * @param {string} opts.subtopicId - The subtopic ID (required)
- * @param {number} opts.nQuestions - Number of questions (default 5)
- * @param {boolean} opts.force - Force regeneration (default false)
- * @returns {Promise<Object>} Quiz data with questions
- */
+// ==================== Quizzes ====================
+
 export async function generateQuiz(topicId, opts = {}) {
   const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
   const nQuestions = Number.isFinite(opts?.nQuestions) ? opts.nQuestions : 5
   const force = Boolean(opts?.force)
+  const difficulty = opts?.difficulty || 'auto'
 
-  if (!subtopicId) {
-    throw new Error('subtopicId is required for quiz generation')
-  }
+  if (!subtopicId) throw new Error('subtopicId is required for quiz generation')
 
   const qs = new URLSearchParams()
   qs.set('subtopic_id', subtopicId)
   qs.set('n_questions', String(nQuestions))
+  qs.set('difficulty', difficulty)
   if (force) qs.set('force', 'true')
 
   return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz?${qs.toString()}`)
@@ -277,58 +170,21 @@ export async function generateQuestions(topicId, opts = {}) {
   const subtopicId = opts?.subtopicId ? String(opts.subtopicId) : null
   const nQuestions = Number.isFinite(opts?.nQuestions) ? opts.nQuestions : 5
   const force = Boolean(opts?.force)
+  const difficulty = opts?.difficulty || 'auto'
 
-  // If we don't have a subtopic, keep the old mock behavior (used by other pages).
-  if (!subtopicId) {
-    await sleep(850)
-    return {
-      topicId,
-      questions: [
-        {
-          id: uid('q'),
-          type: 'mcq',
-          prompt: 'Which option best describes the concept?',
-          choices: ['A', 'B', 'C', 'D'],
-          answerIndex: 1,
-          skill: 'conceptual',
-        },
-        {
-          id: uid('q'),
-          type: 'mcq',
-          prompt: 'Pick the correct next step in a workflow.',
-          choices: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-          answerIndex: 2,
-          skill: 'procedural',
-        },
-      ],
-    }
-  }
+  if (!subtopicId) throw new Error('subtopicId is required')
 
   const qs = new URLSearchParams()
-  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  qs.set('subtopic_id', subtopicId)
   qs.set('n_questions', String(nQuestions))
+  qs.set('difficulty', difficulty)
   if (force) qs.set('force', 'true')
 
-  try {
-    return await apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz?${qs.toString()}`)
-  } catch (e) {
-    // If backend isn't running yet, keep the UI usable with a small mock.
-    await sleep(350)
-    return {
-      topicId,
-      subtopicId,
-      questions: [
-        {
-          question: 'Which option best describes the concept?',
-          options: ['A', 'B', 'C', 'D'],
-        },
-        {
-          question: 'Pick the correct next step in a workflow.',
-          options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-        },
-      ],
-    }
-  }
+  return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/quiz?${qs.toString()}`)
+}
+
+export async function getQuizDifficulty(topicId, subtopicId) {
+  return apiFetch(`/quiz/difficulty/${encodeURIComponent(topicId)}/${encodeURIComponent(subtopicId)}`)
 }
 
 export async function submitQuizAttempt(topicId, { subtopicId, answers, clientTime } = {}) {
@@ -345,57 +201,34 @@ export async function submitQuizAttempt(topicId, { subtopicId, answers, clientTi
   })
 }
 
+// ==================== Quiz Explanations ====================
+
+export async function getQuizExplanations(topicId, subtopicId) {
+  return apiFetch(
+    `/detector/topics/${encodeURIComponent(topicId)}/quiz/explanations?subtopic_id=${encodeURIComponent(subtopicId)}`,
+  )
+}
+
+// ==================== Streaks ====================
+
+export async function getStreaks() {
+  return apiFetch('/streaks')
+}
+
+// ==================== Analytics & Suggestions ====================
+
 export async function getAnalytics() {
-  try {
-    return await apiFetch('/analytics')
-  } catch (e) {
-    // If backend isn't running yet, keep the UI usable with a small mock.
-    await sleep(600)
-    return {
-      streakDays: 7,
-      timeSpentMinutes: 320,
-      topicsLearned: 5,
-      avgScore: 76,
-      byTopic: [
-        { id: 'react-hooks', title: 'React Hooks', progress: 0.55, score: 72, minutes: 90 },
-        { id: 'sql-joins', title: 'SQL Joins', progress: 0.35, score: 64, minutes: 55 },
-        { id: 'os-scheduling', title: 'CPU Scheduling', progress: 0.2, score: 58, minutes: 35 },
-      ],
-    }
-  }
+  return apiFetch('/analytics')
 }
 
 export async function getSuggestions(force = false) {
   const params = new URLSearchParams()
   if (force) params.set('force', 'true')
-  
-  try {
-    return await apiFetch(`/suggestions?${params.toString()}`)
-  } catch (e) {
-    // Fallback if backend isn't running
-    await sleep(500)
-    return {
-      suggestions: [
-        { id: 'fallback-1', title: 'Learn state management basics', reason: 'Often paired with React Hooks', priority: 'high', category: 'parallel', relatedTo: [] },
-        { id: 'fallback-2', title: 'Practice SQL aggregate queries', reason: 'Natural follow-up to joins', priority: 'medium', category: 'advanced', relatedTo: [] },
-        { id: 'fallback-3', title: 'Review time complexity', reason: 'Helps analyze scheduling trade-offs', priority: 'medium', category: 'prerequisite', relatedTo: [] },
-      ],
-      error: 'Using fallback suggestions - backend not available',
-    }
-  }
+  return apiFetch(`/suggestions?${params.toString()}`)
 }
 
-/**
- * Generate a study timetable using the constraint-based scheduler.
- * 
- * @param {Object} params - Timetable generation parameters
- * @param {Array} params.events - Fixed events (exams, assignments, deadlines)
- * @param {Object} params.availability - Daily availability settings
- * @param {Object} params.preferences - Study preferences
- * @param {Array} params.topics - Learning topics
- * @param {string} [params.currentDate] - Start date (ISO format)
- * @returns {Promise<Object>} Generated timetable
- */
+// ==================== Timetable ====================
+
 export async function generateTimetable({
   events = [],
   availability = {},
@@ -437,19 +270,10 @@ export async function generateTimetable({
   })
 }
 
-/**
- * Get a sample timetable for demonstration.
- * @returns {Promise<Object>} Sample timetable
- */
 export async function getSampleTimetable() {
   return apiFetch('/timetable/sample')
 }
 
-/**
- * Validate timetable inputs without generating.
- * @param {Object} params - Same as generateTimetable
- * @returns {Promise<Object>} Validation result
- */
 export async function validateTimetableInputs(params) {
   return apiFetch('/timetable/validate', {
     method: 'POST',
@@ -457,22 +281,10 @@ export async function validateTimetableInputs(params) {
   })
 }
 
-/**
- * Fetch concept dependency graph for a topic.
- * 
- * @param {string} topicId - The topic ID to build graph for
- * @param {Object} options - Optional parameters
- * @param {number} options.maxDepth - Max depth of subtopic expansion (0-2, default 2)
- * @param {number} options.maxChildren - Max children per node (1-10, default 5)
- * @param {boolean} options.useGemini - Use Gemini for expansion (default true)
- * @returns {Promise<{nodes: Array, edges: Array, rootId: string, maxDepth: number}>}
- */
+// ==================== Concept Graph ====================
+
 export async function getConceptGraph(topicId, options = {}) {
-  const {
-    maxDepth = 2,
-    maxChildren = 5,
-    useGemini = true,
-  } = options
+  const { maxDepth = 2, maxChildren = 5, useGemini = true } = options
 
   const params = new URLSearchParams({
     max_depth: maxDepth.toString(),
@@ -483,33 +295,26 @@ export async function getConceptGraph(topicId, options = {}) {
   return apiFetch(`/detector/topics/${encodeURIComponent(topicId)}/graph?${params}`)
 }
 
-// ==================== Resume Learning Functionality ====================
+// ==================== Resume Learning ====================
 
 const LAST_VIEWED_KEY = 'ala.lastViewed'
 
-/**
- * Save the last viewed position for a topic
- * @param {string} topicId 
- * @param {Object} position - { module, step }
- */
 export function saveLastViewedPosition(topicId, position) {
   try {
     const data = JSON.parse(localStorage.getItem(LAST_VIEWED_KEY) || '{}')
-    data[topicId] = {
-      ...position,
-      timestamp: Date.now(),
-    }
+    data[topicId] = { ...position, timestamp: Date.now() }
     localStorage.setItem(LAST_VIEWED_KEY, JSON.stringify(data))
   } catch {
     // ignore
   }
+
+  // Durable, deduped sync to Supabase via the write-behind queue.
+  enqueueSync(
+    { kind: 'settings', lastViewed: JSON.parse(localStorage.getItem(LAST_VIEWED_KEY) || '{}') },
+    'settings:lastViewed',
+  )
 }
 
-/**
- * Get the last viewed position for a topic
- * @param {string} topicId 
- * @returns {Object|null} - { module, step, timestamp } or null
- */
 export function getLastViewedPosition(topicId) {
   try {
     const data = JSON.parse(localStorage.getItem(LAST_VIEWED_KEY) || '{}')
@@ -519,13 +324,6 @@ export function getLastViewedPosition(topicId) {
   }
 }
 
-/**
- * Get the resume learning URL for a topic based on progress
- * @param {string} topicId 
- * @param {Object} topic - Topic data with subtopics
- * @param {Object} progress - Roadmap progress from localStorage
- * @returns {Object} - { url, label, type }
- */
 export function getResumeLearningInfo(topicId, topic, progress) {
   if (!topic?.subtopics?.length) {
     return {
@@ -535,7 +333,6 @@ export function getResumeLearningInfo(topicId, topic, progress) {
     }
   }
 
-  // Helper to slugify subtopic names
   const slugify = (s) =>
     String(s)
       .toLowerCase()
@@ -547,7 +344,6 @@ export function getResumeLearningInfo(topicId, topic, progress) {
     title: t,
   }))
 
-  // Check last viewed position first
   const lastViewed = getLastViewedPosition(topicId)
   if (lastViewed?.module) {
     return {
@@ -557,17 +353,14 @@ export function getResumeLearningInfo(topicId, topic, progress) {
     }
   }
 
-  // Find first incomplete module
   const moduleCompletion = (state) => {
     const keys = ['explainer', 'resources', 'quiz']
-    const done = keys.filter((k) => !!state?.[k]).length
-    return done / keys.length
+    return keys.filter((k) => !!state?.[k]).length / keys.length
   }
 
   const ensureModule = (prog, id) =>
     prog[id] || { explainer: false, resources: false, quiz: false }
 
-  // Check if all content viewed but quiz not passed
   let allContentViewed = true
   let firstIncomplete = null
 
@@ -577,12 +370,6 @@ export function getResumeLearningInfo(topicId, topic, progress) {
 
     if (completion < 1 && !firstIncomplete) {
       firstIncomplete = m
-
-      // Determine which step to start
-      let step = 'explainer'
-      if (state.explainer && !state.resources) step = 'resources'
-      else if (state.explainer && state.resources && !state.quiz) step = 'quiz'
-
       if (!state.explainer || !state.resources) {
         allContentViewed = false
       }
@@ -590,12 +377,7 @@ export function getResumeLearningInfo(topicId, topic, progress) {
   }
 
   if (!firstIncomplete) {
-    // All complete
-    return {
-      url: `/learn/${topicId}`,
-      label: 'Review',
-      type: 'review',
-    }
+    return { url: `/learn/${topicId}`, label: 'Review', type: 'review' }
   }
 
   if (allContentViewed) {
@@ -606,7 +388,6 @@ export function getResumeLearningInfo(topicId, topic, progress) {
     }
   }
 
-  // Determine step based on progress
   const state = ensureModule(progress || {}, firstIncomplete.id)
   let step = 'explainer'
   if (state.explainer && !state.resources) step = 'resources'
@@ -619,21 +400,181 @@ export function getResumeLearningInfo(topicId, topic, progress) {
   }
 }
 
-/**
- * Ask the topic assistant a question about a specific topic.
- * @param {string} topicTitle - The topic being discussed
- * @param {string} question - The user's question
- * @param {Array} history - Previous messages in the conversation
- * @returns {Promise<{answer: string}>}
- */
+// ==================== Topic Assistant ====================
+
 export async function askTopicAssistant(topicTitle, question, history = []) {
   return apiFetch('/assistant/chat', {
     method: 'POST',
     body: {
       topicTitle,
       question,
-      history: history.slice(-10), // Keep last 10 messages for context
+      history: history.slice(-10),
     },
   })
 }
 
+// ==================== Roadmap Progress (Supabase-backed) ====================
+
+export async function getRoadmapProgressFromServer(topicId) {
+  try {
+    return await apiFetch(`/progress/${encodeURIComponent(topicId)}`)
+  } catch {
+    return {}
+  }
+}
+
+export function updateRoadmapProgressOnServer(topicId, subtopicId, updates) {
+  // Enqueue rather than fire-and-forget so the write survives offline/blips.
+  // Deduped per (topic, subtopic): the latest state replaces an un-sent earlier one.
+  enqueueSync(
+    {
+      kind: 'progress',
+      topicId,
+      subtopicId,
+      explainerDone: updates.explainer ?? undefined,
+      resourcesDone: updates.resources ?? undefined,
+      quizDone: updates.quiz ?? undefined,
+    },
+    `progress:${topicId}:${subtopicId}`,
+  )
+}
+
+// ==================== Spaced Repetition & Daily Progress ====================
+
+export async function getReviewQueue() {
+  return apiFetch('/review-queue')
+}
+
+export async function getDailyProgress() {
+  return apiFetch('/daily-progress')
+}
+
+export async function updateDailyGoal({ dailyQuizGoal, dailyMinutesGoal } = {}) {
+  return apiFetch('/daily-progress/goal', {
+    method: 'PUT',
+    body: { dailyQuizGoal, dailyMinutesGoal },
+  })
+}
+
+// ==================== Resource Voting ====================
+
+export async function voteResource({ topicId, subtopicId, resourceUrl, vote }) {
+  return apiFetch('/resources/vote', {
+    method: 'POST',
+    body: { topicId, subtopicId, resourceUrl, vote },
+  })
+}
+
+export async function getResourceVotes(topicId) {
+  return apiFetch(`/resources/votes?topic_id=${encodeURIComponent(topicId)}`)
+}
+
+// ==================== Generated Content Storage ====================
+
+export async function storeGeneratedContent({ topicId, subtopicId, contentType, content }) {
+  return apiFetch('/content/store', {
+    method: 'POST',
+    body: { topicId, subtopicId, contentType, content },
+  })
+}
+
+export async function getGeneratedContent(topicId, { contentType, subtopicId } = {}) {
+  const qs = new URLSearchParams()
+  if (contentType) qs.set('content_type', contentType)
+  if (subtopicId) qs.set('subtopic_id', subtopicId)
+  return apiFetch(`/content/${encodeURIComponent(topicId)}?${qs}`)
+}
+
+// ==================== Classrooms / Collaborative ====================
+
+export async function createClassroom({ name, description }) {
+  return apiFetch('/classrooms', {
+    method: 'POST',
+    body: { name, description },
+  })
+}
+
+export async function joinClassroom(joinCode) {
+  return apiFetch('/classrooms/join', {
+    method: 'POST',
+    body: { joinCode },
+  })
+}
+
+export async function listClassrooms() {
+  return apiFetch('/classrooms')
+}
+
+export async function getClassroom(classroomId) {
+  return apiFetch(`/classrooms/${encodeURIComponent(classroomId)}`)
+}
+
+export async function shareRoadmap({ topicId, title, subtopics, description, classroomId, isPublic }) {
+  return apiFetch('/shared-roadmaps', {
+    method: 'POST',
+    body: { topicId, title, subtopics, description, classroomId, isPublic },
+  })
+}
+
+export async function listSharedRoadmaps(classroomId) {
+  const qs = classroomId ? `?classroom_id=${encodeURIComponent(classroomId)}` : ''
+  return apiFetch(`/shared-roadmaps${qs}`)
+}
+
+export async function getLeaderboard(classroomId) {
+  const qs = classroomId ? `?classroom_id=${encodeURIComponent(classroomId)}` : ''
+  return apiFetch(`/leaderboard${qs}`)
+}
+
+// ==================== Study Sessions ====================
+
+export async function startStudySession({ topicId, subtopicId, activity }) {
+  return apiFetch('/study-sessions/start', {
+    method: 'POST',
+    body: { topicId, subtopicId, activity },
+  })
+}
+
+export async function endStudySession({ sessionId, durationSeconds }) {
+  return apiFetch('/study-sessions/end', {
+    method: 'POST',
+    body: { sessionId, durationSeconds },
+  })
+}
+
+export async function getStudyStats(days = 30) {
+  return apiFetch(`/study-sessions/stats?days=${days}`)
+}
+
+// ==================== Learning Report ====================
+
+export async function getLearningReport() {
+  return apiFetch('/report')
+}
+
+// ==================== Usage Stats ====================
+
+export async function getUsageStats() {
+  return apiFetch('/usage-stats')
+}
+
+// Inject the actual network sender into the sync queue (kept here to avoid an
+// import cycle between syncQueue.js and api.js).
+configureSyncSender(async (payload) => {
+  if (payload.kind === 'progress') {
+    await apiFetch('/progress', {
+      method: 'PUT',
+      body: {
+        topicId: payload.topicId,
+        subtopicId: payload.subtopicId,
+        explainerDone: payload.explainerDone,
+        resourcesDone: payload.resourcesDone,
+        quizDone: payload.quizDone,
+      },
+    })
+  } else if (payload.kind === 'settings') {
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (!sessionData?.session) return // not signed in — drop silently
+    await apiFetch('/settings', { method: 'PUT', body: { lastViewed: payload.lastViewed } })
+  }
+})

@@ -84,9 +84,18 @@ export function AuthProvider({ children }) {
     return supabase.auth.signOut()
   }, [])
 
+  const getAccessToken = useCallback(async () => {
+    try {
+      const { data } = await supabase.auth.getSession()
+      return data?.session?.access_token ?? null
+    } catch {
+      return null
+    }
+  }, [])
+
   const value = useMemo(
-    () => ({ user, loading, isAuthenticated: !!user, login, signup, logout }),
-    [user, loading, login, signup, logout],
+    () => ({ user, loading, isAuthenticated: !!user, login, signup, logout, getAccessToken }),
+    [user, loading, login, signup, logout, getAccessToken],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

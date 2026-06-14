@@ -567,8 +567,9 @@ export default function RoadmapIndex({ topic, activeModule, activeStep, onModule
 
       <div className="space-y-3">
         {!subtopics.length ? (
-          <div className="flex items-center gap-2 text-sm text-white/50">
-            <Spinner /> No subtopics yet. Keep detection running to collect them.
+          <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+            <div className="text-sm text-white/40">No subtopics detected yet.</div>
+            <div className="mt-1 text-xs text-white/25">Run screen detection to capture content — subtopics appear automatically.</div>
           </div>
         ) : (
           subtopics.map((m, index) => (

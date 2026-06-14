@@ -63,5 +63,74 @@
       }
     ],
     "generatedAt": "2026-01-19T11:49:48.655425+00:00"
+  },
+  "data-structures-and-algorithms-with-python:searching-algorithms": {
+    "overview": "Searching algorithms are fundamental techniques used to locate a specific item within a collection of data. They are crucial for efficient data retrieval in various applications, from databases to web search engines. Mastering these algorithms is essential for optimizing the performance of operations that involve finding information.",
+    "prerequisites": [
+      "Basic Python syntax (variables, data types, operators)",
+      "Understanding of Python lists and their methods",
+      "Control flow statements (if/else, for loops, while loops)",
+      "Defining and calling functions in Python",
+      "Fundamental concept of data structures (e.g., what is a collection of items)",
+      "Basic understanding of time complexity (Big O notation)",
+      "Understanding of recursion (for some advanced searching techniques)"
+    ],
+    "keyIdeas": [
+      "Linear Search (Sequential Search): A simple method that checks each element sequentially until a match is found or the list ends. Suitable for unsorted or small datasets.",
+      "Binary Search: An efficient algorithm that requires the data to be sorted. It repeatedly divides the search interval in half, drastically reducing the search space.",
+      "Time Complexity: How the running time of an algorithm grows with the input size (e.g., O(n) for linear, O(log n) for binary).",
+      "Space Complexity: The amount of extra memory an algorithm needs to execute.",
+      "The importance of sorted data: Many highly efficient searching algorithms rely on the data being pre-sorted.",
+      "Trade-offs: Understanding when to choose a simpler but slower algorithm versus a more complex but faster one based on data characteristics and problem constraints.",
+      "Edge Cases: Considering how algorithms behave with empty lists, single-element lists, or when the target item is not present."
+    ],
+    "pitfalls": [
+      "Attempting to use Binary Search on unsorted data, which will lead to incorrect results.",
+      "Off-by-one errors when managing indices (start, end, mid) in binary search implementations.",
+      "Forgetting to handle edge cases, such as searching in an empty list or when the item is not found.",
+      "Misunderstanding or miscalculating the time complexity, leading to poor algorithm choice for large datasets.",
+      "Ignoring the cost of sorting data when considering using a binary search (if data is initially unsorted).",
+      "Inefficient recursive implementations that might lead to excessive function call overhead or stack overflow errors.",
+      "Not validating input data (e.g., ensuring a list is not None before attempting to search)."
+    ],
+    "sections": [
+      {
+        "title": "Prerequisites",
+        "bullets": [
+          "Basic Python syntax (variables, data types, operators)",
+          "Understanding of Python lists and their methods",
+          "Control flow statements (if/else, for loops, while loops)",
+          "Defining and calling functions in Python",
+          "Fundamental concept of data structures (e.g., what is a collection of items)",
+          "Basic understanding of time complexity (Big O notation)",
+          "Understanding of recursion (for some advanced searching techniques)"
+        ]
+      },
+      {
+        "title": "Key Ideas",
+        "bullets": [
+          "Linear Search (Sequential Search): A simple method that checks each element sequentially until a match is found or the list ends. Suitable for unsorted or small datasets.",
+          "Binary Search: An efficient algorithm that requires the data to be sorted. It repeatedly divides the search interval in half, drastically reducing the search space.",
+          "Time Complexity: How the running time of an algorithm grows with the input size (e.g., O(n) for linear, O(log n) for binary).",
+          "Space Complexity: The amount of extra memory an algorithm needs to execute.",
+          "The importance of sorted data: Many highly efficient searching algorithms rely on the data being pre-sorted.",
+          "Trade-offs: Understanding when to choose a simpler but slower algorithm versus a more complex but faster one based on data characteristics and problem constraints.",
+          "Edge Cases: Considering how algorithms behave with empty lists, single-element lists, or when the target item is not present."
+        ]
+      },
+      {
+        "title": "Pitfalls",
+        "bullets": [
+          "Attempting to use Binary Search on unsorted data, which will lead to incorrect results.",
+          "Off-by-one errors when managing indices (start, end, mid) in binary search implementations.",
+          "Forgetting to handle edge cases, such as searching in an empty list or when the item is not found.",
+          "Misunderstanding or miscalculating the time complexity, leading to poor algorithm choice for large datasets.",
+          "Ignoring the cost of sorting data when considering using a binary search (if data is initially unsorted).",
+          "Inefficient recursive implementations that might lead to excessive function call overhead or stack overflow errors.",
+          "Not validating input data (e.g., ensuring a list is not None before attempting to search)."
+        ]
+      }
+    ],
+    "generatedAt": "2026-06-14T06:43:16.552802+00:00"
   }
 }

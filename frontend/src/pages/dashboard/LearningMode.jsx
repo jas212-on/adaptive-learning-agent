@@ -502,6 +502,27 @@ export default function LearningMode() {
     )
   }
 
+  if (!loading && !error && subtopics.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0a0a0f] p-8 text-center">
+        <GraduationCap size={48} className="text-white/20" />
+        <div>
+          <h2 className="text-xl font-semibold text-white">{topic?.title}</h2>
+          <p className="mt-2 text-sm text-white/50">
+            No subtopics detected yet. Run screen detection to capture content and auto-generate subtopics.
+          </p>
+        </div>
+        <Link
+          to={`/dashboard/topics/${topicId}`}
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 hover:bg-white/10 transition"
+        >
+          <ArrowLeft size={16} />
+          Back to Topic
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <TooltipProvider>
       <div className="flex min-h-screen bg-[#0a0a0f]">

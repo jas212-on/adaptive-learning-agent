@@ -62,6 +62,8 @@ stop.flag
 # --- Local data / outputs (customize as needed) ---
 # If you want to version sample outputs, move them under a dedicated folder and unignore.
 output.json
+summary_cache.json
+explainer_cache.json
 *.sqlite
 *.sqlite3
 *.db

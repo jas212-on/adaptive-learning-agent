@@ -115,12 +115,29 @@ def _normalize_questions(raw_questions: Any, n: int) -> list[dict[str, Any]]:
 		else:
 			is_correct = None
 
+		explanation = q.get("explanation") or ""
+		if isinstance(explanation, str):
+			explanation = explanation.strip()
+		else:
+			explanation = ""
+
+		q_difficulty = q.get("difficulty") or "medium"
+		if not isinstance(q_difficulty, str):
+			q_difficulty = "medium"
+
+		skill = q.get("skill") or "conceptual"
+		if not isinstance(skill, str):
+			skill = "conceptual"
+
 		out.append(
 			{
 				"question": question,
 				"options": options,
 				"correctAnswer": correct_answer,
 				"isCorrect": is_correct,
+				"explanation": explanation,
+				"difficulty": q_difficulty.lower(),
+				"skill": skill.lower(),
 			}
 		)
 		if len(out) >= n:
@@ -329,8 +346,11 @@ def _already_generated_for_attempt(quiz: dict[str, Any], attempt_key: str | None
 	return focus.get("basedOnSubmittedAt") == attempt_key
 
 
-def generate_quiz(topic_title: str, subtopic_title: str, n_questions: int = 5, force: bool = False) -> dict[str, Any]:
-	"""Generate (or load cached) MCQ quiz JSON for a specific subtopic."""
+def generate_quiz(topic_title: str, subtopic_title: str, n_questions: int = 5, force: bool = False, difficulty: str = "medium") -> dict[str, Any]:
+	"""Generate (or load cached) MCQ quiz JSON for a specific subtopic.
+
+	difficulty: "easy", "medium", "hard", or "expert" — controls question complexity.
+	"""
 	topic_title = (topic_title or "").strip()
 	subtopic_title = (subtopic_title or "").strip()
 	if not topic_title:
@@ -445,6 +465,14 @@ def generate_quiz(topic_title: str, subtopic_title: str, n_questions: int = 5, f
 	# Fresh generation (or forced regeneration)
 	model = _gemini_client()
 
+	difficulty_guide = {
+		"easy": "Focus on basic recall and fundamental definitions. Use straightforward questions with clearly wrong distractors.",
+		"medium": "Mix recall and application questions. Distractors should be plausible but distinguishable.",
+		"hard": "Focus on application, analysis, and edge cases. Distractors should be very plausible. Include questions that require combining multiple concepts.",
+		"expert": "Focus on synthesis, evaluation, and tricky edge cases. All distractors should be highly plausible. Include questions requiring deep understanding and multi-step reasoning.",
+	}
+	diff_instruction = difficulty_guide.get(difficulty, difficulty_guide["medium"])
+
 	prompt = (
 		"You are an expert tutor. Create a multiple-choice quiz.\n"
 		"Return ONLY valid JSON (no markdown, no backticks).\n\n"
@@ -455,7 +483,9 @@ def generate_quiz(topic_title: str, subtopic_title: str, n_questions: int = 5, f
 		"      \"prompt\": \"...\",\n"
 		"      \"choices\": [\"A\", \"B\", \"C\", \"D\"],\n"
 		"      \"answerIndex\": 0,\n"
-		"      \"skill\": \"conceptual|procedural\"\n"
+		"      \"skill\": \"conceptual|procedural\",\n"
+		"      \"difficulty\": \"easy|medium|hard|expert\",\n"
+		"      \"explanation\": \"Brief explanation of why the answer is correct\"\n"
 		"    }\n"
 		"  ]\n"
 		"}\n\n"
@@ -463,7 +493,10 @@ def generate_quiz(topic_title: str, subtopic_title: str, n_questions: int = 5, f
 		f"- Exactly {n_questions} questions\n"
 		"- 4 choices each\n"
 		"- answerIndex must be 0..3\n"
-		"- Avoid trick questions; keep to the subtopic\n\n"
+		"- Avoid trick questions; keep to the subtopic\n"
+		f"- Difficulty level: {difficulty.upper()}\n"
+		f"  {diff_instruction}\n"
+		"- Include a brief explanation for each correct answer\n\n"
 		f"Topic: {topic_title}\n"
 		f"Subtopic: {subtopic_title}\n"
 	)

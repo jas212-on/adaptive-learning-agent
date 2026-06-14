@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Network, ChevronDown, ChevronRight, RefreshCw, Settings2, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
@@ -147,50 +147,46 @@ function TopicSelector() {
   }, [])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Network size={18} /> Select a Topic
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm font-light text-white/50 mb-4">
-          Choose a detected topic to view its concept dependency graph.
-        </div>
-        
+    <div className="space-y-8">
+      <div>
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/20">Visualize</p>
+        <h1 className="mt-1 text-[26px] font-extralight tracking-tight text-white/90">Concept Map</h1>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.07] bg-white/[0.01] p-6">
+        <p className="mb-5 text-sm font-light text-white/40">
+          Select a detected topic to visualize its concept dependency graph.
+        </p>
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-white/60">
+          <div className="flex items-center gap-2.5 text-sm font-light text-white/40">
             <Spinner /> Loading topics…
           </div>
         ) : topics.length === 0 ? (
-          <div className="text-center py-8">
-            <Network size={48} className="mx-auto mb-4 text-white/30" />
-            <div className="text-white/60">No topics detected yet.</div>
-            <div className="mt-2 text-sm font-light text-white/40">
-              Start the detector on the Detection page to capture topics.
-            </div>
+          <div className="flex flex-col items-center py-10">
+            <Network size={36} className="mb-4 text-white/15" />
+            <div className="text-sm font-light text-white/40">No topics detected yet</div>
           </div>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {topics.map((t) => (
-              <a
+              <Link
                 key={t.id}
-                href={`?topic=${encodeURIComponent(t.id)}`}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
+                to={`/dashboard/dependency-graph?topic=${encodeURIComponent(t.id)}`}
+                className="group flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition hover:border-white/[0.12] hover:bg-white/[0.04]"
               >
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-500/15 text-indigo-400">
-                  <Network size={18} />
+                <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-indigo-500/12 text-indigo-400">
+                  <Network size={15} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-white truncate">{t.title}</div>
-                  <div className="text-xs font-light text-white/50">{t.level || 'Unknown level'}</div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-white">{t.title}</div>
+                  <div className="text-[10px] font-light text-white/35">{t.level || 'intermediate'}</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -309,12 +305,16 @@ export default function DependencyGraph() {
     .filter(Boolean) || []
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div>
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/20">Visualize</p>
+        <h1 className="mt-1 text-[26px] font-extralight tracking-tight text-white/90">Concept Map</h1>
+      </div>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Network size={18} /> Concept Dependency Graph
+              <Network size={15} /> Dependency Graph
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button

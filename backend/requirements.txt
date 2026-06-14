@@ -1,7 +1,7 @@
 # Core API
 fastapi
 uvicorn[standard]
-pydantic
+pydantic>=2.0.0
 python-dotenv
 
 # LLM (Gemini)
@@ -13,9 +13,29 @@ requests
 # Web search (SerpAPI)
 google-search-results
 
+# Database (Supabase)
+supabase
+
+# JWT signature verification (Supabase auth tokens)
+PyJWT
+
+# Rate limiting
+slowapi
+
 # OCR / screen capture (Windows)
 pytesseract
 opencv-python
 numpy
 mss
 pywin32
+
+# Testing
+pytest
+httpx
+
+# Optional LLM providers (install as needed)
+# anthropic       # for Claude provider
+# openai          # for OpenAI provider
+
+# Sentry (optional observability)
+# sentry-sdk[fastapi]

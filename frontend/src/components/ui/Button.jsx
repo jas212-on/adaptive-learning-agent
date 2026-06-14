@@ -1,4 +1,5 @@
 import { cn } from '../../lib/cn'
+import { Spinner } from './Spinner'
 
 export function Button({
   className,
@@ -6,6 +7,8 @@ export function Button({
   size = 'md',
   type = 'button',
   disabled,
+  isLoading = false,
+  children,
   ...props
 }) {
   const variants = {
@@ -19,6 +22,8 @@ export function Button({
       'border border-white/10 bg-transparent text-white/80 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black',
     danger:
       'bg-red-500 text-white hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black',
+    success:
+      'bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black',
   }
 
   const sizes = {
@@ -30,7 +35,8 @@ export function Button({
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-60',
         variants[variant],
@@ -38,6 +44,9 @@ export function Button({
         className,
       )}
       {...props}
-    />
+    >
+      {isLoading && <Spinner className="h-4 w-4" />}
+      {children}
+    </button>
   )
 }

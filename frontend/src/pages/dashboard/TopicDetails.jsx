@@ -121,8 +121,8 @@ export default function TopicDetails() {
         <Tooltip content={tooltipContent.confidence}>
           <span>
             <Badge className="cursor-help border border-white/10 bg-white/5 text-white/80">
-              {topic.confidence === null || topic.confidence === undefined
-                ? 'Confidence: —'
+              {topic.confidence === null || topic.confidence === undefined || topic.confidence === 0
+                ? 'Not yet assessed'
                 : `${Math.round(topic.confidence * 100)}% confidence`}
             </Badge>
           </span>

@@ -4,62 +4,228 @@
 
 @layer base {
   :root {
-    --bg: 0 0% 100%;
-    --bg-muted: 210 40% 98%;
-    --fg: 222 47% 11%;
-    --fg-muted: 215 16% 47%;
-    --card: 0 0% 100%;
-    --card-fg: 222 47% 11%;
-    --border: 214 32% 91%;
-    --primary: 221 83% 53%;
-    --primary-fg: 210 40% 98%;
-    --ring: 221 83% 53%;
-    --danger: 0 84% 60%;
-    --danger-fg: 210 40% 98%;
+    /* Design tokens — dark-first */
+    --bg: 9 9 11;            /* zinc-950 */
+    --bg-muted: 15 15 18;
+    --fg: 250 250 250;
+    --fg-muted: 161 161 170;
+    --card: 18 18 21;
+    --card-fg: 250 250 250;
+    --border: 255 255 255 / 0.07;
+    --primary: 129 140 248;  /* indigo-400 */
+    --primary-fg: 9 9 11;
+    --ring: 129 140 248;
+    --danger: 248 113 113;
+    --danger-fg: 9 9 11;
+    --success: 52 211 153;
+    --success-fg: 9 9 11;
+    --warning: 251 191 36;
+    --warning-fg: 9 9 11;
+
+    /* Surfaces (rgba) */
+    --surface-0: rgba(255,255,255,0.015);
+    --surface-1: rgba(255,255,255,0.03);
+    --surface-2: rgba(255,255,255,0.055);
+    --surface-3: rgba(255,255,255,0.08);
+
+    /* Borders */
+    --border-ghost: rgba(255,255,255,0.04);
+    --border-subtle: rgba(255,255,255,0.07);
+    --border-muted: rgba(255,255,255,0.11);
+    --border-accent: rgba(99,102,241,0.28);
+
+    /* Accent */
+    --accent: rgb(129,140,248);
+    --accent-muted: rgba(99,102,241,0.12);
+    --accent-glow: rgba(99,102,241,0.20);
   }
 
-  .dark {
-    --bg: 222 47% 7%;
-    --bg-muted: 222 47% 10%;
-    --fg: 210 40% 98%;
-    --fg-muted: 215 20% 65%;
-    --card: 222 47% 9%;
-    --card-fg: 210 40% 98%;
-    --border: 217 25% 18%;
-    --primary: 217 91% 60%;
-    --primary-fg: 222 47% 11%;
-    --ring: 217 91% 60%;
-    --danger: 0 84% 60%;
-    --danger-fg: 222 47% 11%;
-  }
-
-  html, body {
-    height: 100%;
-  }
+  html, body { height: 100%; }
 
   body {
-    @apply bg-bg text-fg antialiased;
+    @apply bg-[#09090b] text-white antialiased;
+    font-feature-settings: "ss01", "cv01";
   }
 
-  * {
-    @apply border-border;
+  /* ── Global aurora atmosphere ────────────────────── */
+  #root::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(99,102,241,0.055) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(139,92,246,0.04) 0%, transparent 60%);
+  }
+
+  /* Premium scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+  /* Text selection */
+  ::selection { background: rgba(99,102,241,0.30); color: white; }
+
+  /* Smooth focus rings */
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-indigo-400/50 ring-offset-1 ring-offset-[#09090b];
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
+  /* ── Typography ─────────────────────────────────── */
+  .text-display {
+    @apply text-3xl font-extralight tracking-tight text-white/92;
+  }
+  .text-heading {
+    @apply text-xl font-light tracking-tight text-white/90;
+  }
+  .text-title {
+    @apply text-[15px] font-medium text-white/88;
+  }
+  .text-body {
+    @apply text-[13px] text-white/65;
+  }
+  .text-caption {
+    @apply text-[11px] text-white/40;
+  }
+  .text-label {
+    @apply text-[9px] font-semibold uppercase tracking-[0.13em] text-white/25;
+  }
+
+  /* ── Surfaces ───────────────────────────────────── */
+  .glass {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-2xl;
+  }
+  .glass-sm {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-xl;
+  }
+  .glass-elevated {
+    background: var(--surface-2);
+    border: 1px solid var(--border-muted);
+    @apply rounded-2xl;
+  }
+  .glass-ghost {
+    background: var(--surface-0);
+    border: 1px solid var(--border-ghost);
+    @apply rounded-xl;
+  }
+
+  /* ── Interactive states ─────────────────────────── */
+  .interactive {
+    @apply transition-all duration-150 cursor-pointer;
+  }
+  .interactive:hover {
+    background: var(--surface-2);
+  }
+
+  /* ── Accent ─────────────────────────────────────── */
+  .accent-text {
+    @apply text-indigo-400;
+  }
+  .accent-bg {
+    background: var(--accent-muted);
+  }
+  .accent-border {
+    border-color: var(--border-accent);
+  }
+
+  /* ── Dividers ───────────────────────────────────── */
+  .divider {
+    @apply border-t border-white/[0.06];
+  }
+
+  /* ── Gradient text ──────────────────────────────── */
+  .gradient-text {
+    @apply bg-gradient-to-r from-white/90 to-white/50 bg-clip-text text-transparent;
+  }
+  .gradient-accent {
+    @apply bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  /* ── Skeleton ───────────────────────────────────── */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg;
+    background: var(--surface-1);
+  }
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    content: '';
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  }
+
+  /* ── AI pulse indicator ─────────────────────────── */
+  .ai-pulse {
+    @apply relative inline-flex h-2 w-2;
+  }
+  .ai-pulse::before {
+    @apply absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping;
+    content: '';
+    background: rgb(52,211,153);
+  }
+  .ai-pulse::after {
+    @apply relative inline-flex h-2 w-2 rounded-full;
+    content: '';
+    background: rgb(52,211,153);
+  }
+
+  /* ── Container ──────────────────────────────────── */
   .container-page {
-    @apply mx-auto w-full max-w-6xl px-4;
+    @apply mx-auto w-full max-w-5xl px-6;
   }
 
+  /* ── Card (legacy compat) ───────────────────────── */
   .card {
-    @apply rounded-xl border bg-card text-card-fg shadow-soft;
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-2xl;
   }
-
   .card-pad {
     @apply p-5 sm:p-6;
   }
+  .muted { @apply text-white/40; }
+}
 
-  .muted {
-    @apply text-fg-muted;
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
   }
+  .animate-slide-up {
+    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+  }
+
+  /* Glow border */
+  .glow-border {
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.3), 0 0 20px rgba(99,102,241,0.08);
+  }
+
+  /* Surface backgrounds as utilities */
+  .bg-surface-0 { background: var(--surface-0); }
+  .bg-surface-1 { background: var(--surface-1); }
+  .bg-surface-2 { background: var(--surface-2); }
+  .bg-surface-3 { background: var(--surface-3); }
+
+  /* Border utilities */
+  .border-ghost { border-color: var(--border-ghost); }
+  .border-subtle { border-color: var(--border-subtle); }
+  .border-muted-custom { border-color: var(--border-muted); }
+  .border-accent-custom { border-color: var(--border-accent); }
 }

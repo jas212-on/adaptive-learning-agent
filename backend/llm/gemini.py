@@ -1,20 +1,24 @@
-import google.generativeai as genai
+"""Gemini LLM client — thin backwards-compatible wrapper around GeminiProvider."""
+from __future__ import annotations
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+# Re-export the provider for direct use within the llm package.
+from llm.provider import GeminiProvider as _GeminiProvider  # noqa: E402
 
-if not api_key:
-    raise RuntimeError(
-        "Gemini API key not found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment or .env file."
-    )
+_instance: _GeminiProvider | None = None
 
-genai.configure(api_key=api_key)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+def _get_instance() -> _GeminiProvider:
+    global _instance
+    if _instance is None:
+        _instance = _GeminiProvider()
+    return _instance
+
 
 def ask_gemini(prompt: str) -> str:
-    response = model.generate_content(prompt)
-    return response.text
+    """Ask Gemini a question. Raises RuntimeError if the API key is not configured."""
+    return _get_instance().ask(prompt)

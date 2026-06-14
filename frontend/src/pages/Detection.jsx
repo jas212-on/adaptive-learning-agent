@@ -39,44 +39,37 @@ export default function Detection() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black text-white">
+    <div className="relative min-h-screen bg-[#080808] text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_10%,rgba(255,255,255,0.10),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(800px_circle_at_80%_0%,rgba(99,102,241,0.18),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.07),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.05),transparent_50%)]" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.06] to-transparent" />
-        <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-10 lg:px-16">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-white">
-              <Power size={16} className={running ? 'text-emerald-200' : 'text-white/70'} />
+      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#080808]/80 backdrop-blur-xl">
+        <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6 md:px-10 lg:px-16">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-500/15 text-indigo-400">
+              <Power size={13} className={running ? 'text-emerald-300' : 'text-indigo-400'} />
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-tight">Adaptive Learning Agent</div>
-              <div className="text-xs font-light tracking-tight text-white/55">Detection</div>
+              <div className="text-[13px] font-medium tracking-tight">Adaptive Learning</div>
+              <div className="text-[10px] font-light text-white/35">Detection Mode</div>
             </div>
           </Link>
 
           <div className="flex items-center gap-2">
             <Link
               to="/dashboard"
-              className="hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-light tracking-tight text-white/80 transition-colors hover:bg-white/10 sm:inline-flex"
+              className="hidden rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-light text-white/60 transition hover:bg-white/[0.06] sm:inline-flex"
             >
               Dashboard
             </Link>
-            <Button
-              variant="secondary"
-              className="rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-              onClick={() => {
-                logout()
-                navigate('/login')
-              }}
+            <button
+              onClick={() => { logout(); navigate('/login') }}
+              className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 text-white/50 transition hover:bg-white/[0.06]"
             >
-              <LogOut size={18} />
-              Logout
-            </Button>
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </header>
@@ -127,7 +120,7 @@ export default function Detection() {
                   className={
                     running
                       ? 'relative h-56 w-56 rounded-full bg-gradient-to-br from-emerald-500/90 to-emerald-400/60 shadow-2xl shadow-emerald-500/25 transition-all group-hover:shadow-emerald-500/35'
-                      : 'relative h-56 w-56 rounded-full bg-gradient-to-br from-white/18 to-white/8 shadow-2xl shadow-black/40 transition-all group-hover:bg-white/20'
+                      : 'relative h-56 w-56 rounded-full bg-gradient-to-br from-white/[0.18] to-white/[0.08] shadow-2xl shadow-black/40 transition-all group-hover:bg-white/20'
                   }
                 >
                   <div className="absolute inset-0 rounded-full ring-1 ring-white/10" />
